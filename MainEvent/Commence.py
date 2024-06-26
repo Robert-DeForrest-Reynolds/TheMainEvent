@@ -61,6 +61,19 @@ class MainEvent:
         Self.MainEventLogger.info("Logger is setup")
 
 
+    async def Select_Activity(Self, User:Member, Interaction:Interaction, Selection:str) -> None:
+        if Interaction.user != User: return
+        
+        Mapping = {
+            "Arena":Arena,
+            "Horse Racing":HorseRacing,
+        }
+
+        Mapping[Selection](User, Interaction, Self)
+
+
+
+
 global ME
 ME:MainEvent = MainEvent()
 
@@ -84,7 +97,8 @@ async def on_ready() -> None:
     ME.MainEventLogger.log(20, Message)
     await ME.Bot.change_presence(activity=Game('$me'))
 
-    ME.Channels.update({"Arena":ME.Bot.get_channel(1255299515297169428)})
+    ME.Channels.update({"Arena":ME.Bot.get_channel(1255299515297169428), 
+                        "TrainingGrounds": ME.Bot.get_channel(1255663997718368256)})
 
     Populate_Players()
 
@@ -98,17 +112,6 @@ async def Main_Event(InitialContext:Context) -> None:
     if InitialContext.guild.id not in ME.ProtectedGuildIDs: return
     User = InitialContext.message.author
     Activities(User, InitialContext, ME)
-
-
-async def Select_Activity(User:Member, Interaction:Interaction, Selection:str) -> None:
-    if Interaction.user != User: return
-    
-    Mapping = {
-        "Arena":Arena,
-        "Horse Racing":HorseRacing,
-    }
-
-    Mapping[Selection](User, Interaction, ME)
 
 
 ME.Bot.run(ME.Token)
