@@ -1,0 +1,5 @@
+Keys.txt
+.venv/
+Data/
+MainEventOld.py
+*.log
