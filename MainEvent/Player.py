@@ -2,14 +2,16 @@ from asyncio import create_task, wait_for
 from os.path import join, exists
 from Fighter import Fighter
 from Challenge import Challenge
+from discord import Member
 
 class Player:
-    def __init__(Self, MemberReference, MEReference) -> None:
+    def __init__(Self, MemberReference:Member, MEReference) -> None:
         Self.ME = MEReference
         Self.Data = {
             "UUID":MemberReference.id,
             "MemberReference": MemberReference,
             "Name":MemberReference.name,
+            "Nick":MemberReference.display_name,
             "Rank":0,
             "Wallet":5000.0,
         }
@@ -46,7 +48,7 @@ class Player:
                     TargetFighter = Self.ME.Players[Datum[2]].Fighters[Datum[3].strip()]
                     NewChallenge = Challenge(Challenger, ChallengerFighter, Target, TargetFighter)
                     Self.Challenges.update({Challenger.Data["Name"]:NewChallenge})
-                print(Self.Challenges)
+                    Self.ME.AllChallenges.update({Challenger.Data["Name"]:NewChallenge})
 
 
     async def Save_Fighters(Self) -> None:

@@ -13,12 +13,12 @@ class HorseRacing:
         Self.User:Member = User
         Self.Player:Player = Self.ME.Players[Self.User.name]
 
-        Message = f"{Self.Player.Data["Name"]} called for an Horse Racing Panel"
+        Message = f"{Self.Player.Data["Nick"]} called for an Horse Racing Panel"
         print(Message)
         Self.ME.MainEventLogger.log(20, Message)
 
         HorseRacingView = View(timeout=144000)
-        HorseRacingEmbed = Embed(title=f"Welcome, {Self.Player.Data["Name"]}, to Valor Heights Horse Arena!")
+        HorseRacingEmbed = Embed(title=f"Welcome, {Self.Player.Data["Nick"]}, to Valor Heights Horse Arena!")
 
         HorseRacingEmbed.add_field(name="\u200b", value=f"👑 {Self.Player.Data["Rank"]:,}", inline=False)
         HorseRacingEmbed.add_field(name="\u200b", value=f"💵 {Self.Player.Data["Wallet"]:,}", inline=False)

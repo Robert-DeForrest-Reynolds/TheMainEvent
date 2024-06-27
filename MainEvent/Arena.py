@@ -23,7 +23,7 @@ class Arena:
 
     async def Train(Self, Interaction, TrainingFighter:Fighter):
         await Self.Send_Arena_Panel(Self.User, Interaction)
-        BattleEmbed = Embed(title=f"⚔️ {Self.Player.Data["Name"]} has tasked {TrainingFighter.Data['Name']} with training! ⚔️")
+        BattleEmbed = Embed(title=f"⚔️ {Self.Player.Data["Nick"]} has tasked {TrainingFighter.Data['Name']} with training! ⚔️")
         TrainingFighterCopy = Fighter(TrainingFighter.Data["Name"])
         TrainingFighterCopy.Data["Health"] = TrainingFighter.Data["Health"]
         TrainingFighterCopy.Data["Power"] = TrainingFighter.Data["Power"]
@@ -122,7 +122,7 @@ class Arena:
     async def Stop_Battle(Self, Interaction:Interaction):
         if Interaction.user.id in [713798389908897822, 897410636819083304]:
             BattleView = View(timeout=14400)
-            BattleEmbed = Embed(title=f"⚔️ Battle Stopped Early⚔️")
+            BattleEmbed = Embed(title=f"⚔️ Battle Stopped Early ⚔️")
             Self.EarlyStop = True
             NotificationMessage = await Interaction.channel.send(view=BattleView, embed=BattleEmbed)
             await sleep(4)
@@ -135,7 +135,7 @@ class Arena:
         if Exhibition == True:
             BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['ChallengerFighter'].Data['Name']} versus {Challenge.Data['TargetFighter'].Data['Name']} ⚔️")
         else:
-            BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['Target'].Data['Name']} versus {Challenge.Data['Challenger'].Data['Name']} ⚔️")
+            BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['Target'].Data['Nick']} versus {Challenge.Data['Challenger'].Data['Nick']} ⚔️")
         TargetDescription = ""
 
         StopButton = Button(label="Stop", row=0)
@@ -204,7 +204,7 @@ class Arena:
             if Exhibition == True:
                 BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['ChallengerFighter'].Data['Name']} versus {Challenge.Data['TargetFighter'].Data['Name']} ⚔️")
             else:
-                BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['Target'].Data['Name']} versus {Challenge.Data['Challenger'].Data['Name']} ⚔️")
+                BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['Target'].Data['Nick']} versus {Challenge.Data['Challenger'].Data['Nick']} ⚔️")
                 
             DamageDescription += f"{FighterOne.Data['Name']} {FighterOneAttackMove} and dealt {FighterOneDamage}\n\n"
             DamageDescription += f"{FighterTwo.Data['Name']} defended {FighterTwoDefensiveMove} and blocked {FighterTwoDefense} damage\n\n"
@@ -247,7 +247,7 @@ class Arena:
             if Exhibition == True:
                 BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['ChallengerFighter'].Data['Name']} versus {Challenge.Data['TargetFighter'].Data['Name']} ⚔️")
             else:
-                BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['Target'].Data['Name']} versus {Challenge.Data['Challenger'].Data['Name']} ⚔️")
+                BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['Target'].Data['Nick']} versus {Challenge.Data['Challenger'].Data['Nick']} ⚔️")
 
             FighterTwoDamage = randrange(1, FighterTwo.Data["Power"]+1)
             FighterTwoAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
@@ -315,7 +315,7 @@ class Arena:
 
             PlayerOne.Challenges.pop(Challenge.Data["Challenger"].Data["Name"])
         
-            BattleEmbed.add_field(name="\u200b", value=f"{PlayerWinner.Data["Name"]} was rewarded 👑125 and 💵600")
+            BattleEmbed.add_field(name="\u200b", value=f"{PlayerWinner.Data["Nick"]} was rewarded 👑125 and 💵600")
 
             await PlayerOne.Save_Challenges()
             await PlayerWinner.Save_Data()
@@ -356,18 +356,25 @@ class Arena:
 
     async def Change_Fighter_Name(Self, Interaction, NewFighterName):
         if NewFighterName in Self.Player.Fighters.keys(): return
-        print(NewFighterName)
+        PastName = Self.SelectedFighter.Data["Name"]
         Self.SelectedFighter.Data["Name"] = NewFighterName
-        print(Self.SelectedFighter)
+        Self.Player.Fighters.pop(PastName)
+        Self.Player.Fighters.update({Self.SelectedFighter.Data["Name"]:Self.SelectedFighter})
+        for Challenge in Self.ME.AllChallenges.values():
+            if Challenge.Data["TargetFighter"] == Self.SelectedFighter or Challenge.Data["ChallengerFighter"] == Self.SelectedFighter:
+                Challenge.Data["TargetFighter"] = Self.SelectedFighter
+                await Challenge.Data["Target"].Save_Challenges()
+
         await Self.Player.Save_Fighters()
+        await Self.Player.Save_Challenges()
         await Self.Send_Arena_Panel(Self.User, Interaction)
 
 
     async def Send_Select_Challenge_Target_Modal(Self, Interaction:Interaction):
         SelectTargetModal = Modal(title="Who are you challenging?", custom_id="Modal")
-        SelectTargetModal.on_submit = lambda Interaction: Self.Send_Challenge_Panel(Interaction, TargetName=TargetName)
+        SelectTargetModal.on_submit = lambda Interaction: Self.Send_Challenge_Panel(Interaction, TargetName=TargetName.value)
 
-        TargetName = TextInput(label="Enter a user's name")
+        TargetName = TextInput(label="Enter username (no nicknames)")
         SelectTargetModal.add_item(TargetName)
 
         await Interaction.response.send_modal(SelectTargetModal)
@@ -391,7 +398,7 @@ class Arena:
         Self.ME.MainEventLogger.log(20, Message)
 
         ChallengeView = View(timeout=144000)
-        ChallengeEmbed = Embed(title=f"⚔️ Welcome, {Self.Player.Data["Name"]}! Challenge, Fight, Win! ⚔️")
+        ChallengeEmbed = Embed(title=f"⚔️ Welcome, {Self.Player.Data["Nick"]}! Challenge, Fight, Win! ⚔️")
 
         FighterChoice = Select(placeholder="Select a Fighter",
                                options=[SelectOption(label=Fighter) for Fighter in Self.Player.Fighters],
@@ -420,6 +427,7 @@ class Arena:
     async def Challenge(Self, Interaction):
         NewChallenge = Challenge(Self.Player, Self.SelectedFighter, Self.Target, Self.SelectedOpponentFighter)
         Self.Target.Challenges.update({Self.Player.Data["Name"]:NewChallenge})
+        Self.ME.AllChallenges.update({Self.Player.Data["Name"]:NewChallenge})
         Self.SelectedOpponentFighter = None
         await Self.Target.Save_Challenges()
         await Self.Send_Arena_Panel(Self.User, Interaction)
@@ -470,7 +478,7 @@ class Arena:
         await Interaction.response.send_modal(SecondFighterModal)
 
 
-    async def Create_Exhibition_Match(Self, FighterOneData, FighterTwoData):
+    async def Create_Exhibition_Match(Self, Interaction:Interaction, FighterOneData, FighterTwoData):
         FighterOne = Fighter(FighterOneData[0])
         FighterTwo = Fighter(FighterTwoData[0])
 
@@ -484,6 +492,8 @@ class Arena:
 
         ExhibitionChallenge = Challenge(None, FighterOne, None, FighterTwo, Exhibition=True)
         await Self.Battle(ExhibitionChallenge, Exhibition=True)
+        await Self.Send_Arena_Panel(Self.User, Interaction)
+
 
 
     async def Send_Exhibition_Panel(Self, Interaction, FighterOneData=None, FighterTwoData=None):
@@ -519,9 +529,9 @@ class Arena:
         ExhibitionView.add_item(AddFighterTwoButton)
 
         if FighterOneData != None and FighterTwoData != None:
-            AddFighterTwoButton = Button(label="Battle!", row=1)
-            AddFighterTwoButton.callback = lambda Interaction: Self.Create_Exhibition_Match(FighterOneData, FighterTwoData)
-            ExhibitionView.add_item(AddFighterTwoButton)
+            BattleButton = Button(label="Battle!", row=1)
+            BattleButton.callback = lambda Interaction: Self.Create_Exhibition_Match(Interaction, FighterOneData, FighterTwoData)
+            ExhibitionView.add_item(BattleButton)
         
         await Interaction.response.edit_message(view=ExhibitionView, embed=ExhibitionEmbed)
 
@@ -535,7 +545,7 @@ class Arena:
         Self.ME.MainEventLogger.log(20, Message)
 
         ArenaView = View(timeout=144000)
-        ArenaEmbed = Embed(title=f"Welcome, {Self.Player.Data["Name"]}, to the Arena!")
+        ArenaEmbed = Embed(title=f"Welcome, {Self.Player.Data["Nick"]}, to the Arena!")
         ArenaDescription = ""
         ChallengeDescription = ""
         ChallengerDescription = ""
@@ -552,7 +562,7 @@ class Arena:
 
         if len(Self.Player.Challenges.keys()) > 0:
             ChallengesChoice = Select(placeholder="You have challenges!",
-                                options=[SelectOption(label=Challenge.Data["Challenger"].Data["Name"]) for Challenge in Self.Player.Challenges.values()],
+                                options=[SelectOption(label=Challenge.Data["Challenger"].Data["Nick"]) for Challenge in Self.Player.Challenges.values()],
                                 row=0,
                                 custom_id=f"ChallengesChoice")
             ChallengesChoice.callback = lambda Interaction: Self.Select_Challenge(Interaction)
@@ -570,13 +580,13 @@ class Arena:
             ExhibitionMatchButton.callback = lambda Interaction: Self.Send_Exhibition_Panel(Interaction)
             ArenaView.add_item(ExhibitionMatchButton)
 
-        if len(Self.Player.Fighters) > 0:
+        if len(Self.Player.Fighters.keys()) > 0:
             ChallengeButton = Button(label="Challenge", row=3)
             ChallengeButton.callback = lambda Interaction: Self.Send_Select_Challenge_Target_Modal(Interaction)
             ArenaView.add_item(ChallengeButton)
 
             FighterChoice = Select(placeholder="Select a Fighter",
-                                   options=[SelectOption(label=Fighter) for Fighter in Self.Player.Fighters],
+                                   options=[SelectOption(label=Fighter) for Fighter in Self.Player.Fighters.keys()],
                                    row=1,
                                    custom_id=f"FighterChoice")
             FighterChoice.callback = lambda Interaction: Self.Select_Fighter(Interaction)
@@ -584,7 +594,7 @@ class Arena:
 
         if Self.Target != None:
             ArenaEmbed.add_field(name="\u200b", value="\u200b", inline=False)
-            ArenaEmbed.add_field(name="⚔️ Challenged ⚔️", value=f"You challenged {Self.Target.Data['Name']}!", inline=False)
+            ArenaEmbed.add_field(name="⚔️ Challenged ⚔️", value=f"You challenged {Self.Target.Data['Nick']} ({Self.Target.Data['Name']})!", inline=False)
             Self.Target = None
 
         if Self.SelectedFighter != None:
@@ -597,7 +607,6 @@ class Arena:
             FighterDescription += f"🏆 {Self.SelectedFighter.Data["Wins"]}\n"
             FighterDescription += f"⚰️ {Self.SelectedFighter.Data["Losses"]}\n"
             FighterDescription += f"💀 {Self.SelectedFighter.Data['CreatureKills']}\n"
-            print(type(Self.SelectedFighter.Data["Name"]))
             FighterChoice.placeholder = Self.SelectedFighter.Data["Name"]
 
             ChangeFighterNameButton = Button(label="Change Fighter Name", row=3)
@@ -612,8 +621,8 @@ class Arena:
 
         if Self.SelectedChallenge != None:
             Challenge = Self.SelectedChallenge
-            ChallengeDescription += f"{Self.SelectedChallenge.Data["Challenger"].Data['Name']} challenges you!\n"
-            ChallengeDescription += f"They proposed {Self.SelectedChallenge.Data["TargetFighter"].Data['Name']} versus {Self.SelectedChallenge.Data["ChallengerFighter"].Data['Name']}\n"
+            ChallengeDescription += f"{Self.SelectedChallenge.Data["Challenger"].Data['Nick']} challenges you!\n"
+            ChallengeDescription += f"They proposed {Self.SelectedChallenge.Data["TargetFighter"].Data['Nick']} versus {Self.SelectedChallenge.Data["ChallengerFighter"].Data['Nick']}\n"
 
             TargetDescription += f"{Self.SelectedChallenge.Data['TargetFighter'].Data['Name']}\n"
             TargetDescription += f"💠{Self.SelectedChallenge.Data['TargetFighter'].Data['Level']}\n"
@@ -643,7 +652,7 @@ class Arena:
             AcceptChallengeButton = Button(label="Accept Challenge", row=2)
             AcceptChallengeButton.callback = lambda Interaction: Self.Accept_Challenge(Interaction, Challenge)
             ArenaView.add_item(AcceptChallengeButton)
-            ChallengesChoice.placeholder = Self.SelectedChallenge.Data["Challenger"].Data["Name"]
+            ChallengesChoice.placeholder = Self.SelectedChallenge.Data["Challenger"].Data["Nick"]
             Self.SelectedChallenge = None
 
 
@@ -658,4 +667,6 @@ class Arena:
             await Interaction.message.delete()
 
 
-    async def Send_Activities(Self, User, Interaction): Activities(User, Interaction)
+    async def Send_Activities(Self, User, Interaction):
+        Activities(User, Interaction, Self.ME)
+        del Self

@@ -11,12 +11,12 @@ class Activities():
     async def Send_Activities_Panel(Self, User:Member, Interaction:Interaction):
         Self.User:Member = User
         Self.Player:Player = Self.ME.Players[Self.User.name]
-        Message = f"{Self.Player.Data["Name"]} called for a panel"
+        Message = f"{Self.Player.Data["Nick"]} called for a panel"
         print(Message)
         Self.ME.MainEventLogger.log(20, Message)
 
         MEView = View(timeout=144000)
-        MEEmbed = Embed(title=f"Welcome, {Interaction.message.author}, to the Main Event!")
+        MEEmbed = Embed(title=f"Welcome, {Self.Player.Data["Nick"]}, to the Main Event!")
         MEDescription = ""
 
         if len(Self.Player.Challenges.keys()) > 0:

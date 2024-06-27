@@ -42,6 +42,8 @@ class MainEvent:
             "Horse Racing",
         ]
 
+        Self.AllChallenges = {}
+
         Self.ProtectedGuildIDs = [
             1127838810097594438, # DeForrest Studios
             1219494686369255444, # Odysseus Strike Force
@@ -116,7 +118,7 @@ async def on_ready() -> None:
 
 @ME.Bot.command(aliases=["me"])
 async def Main_Event(InitialContext:Context) -> None:
-    if InitialContext.guild.id not in ME.ProtectedGuildIDs: return
+    if InitialContext.guild.id not in ME.ProtectedGuildIDs or InitialContext.channel not in ME.Channels.values(): return
     User = InitialContext.message.author
     Activities(User, InitialContext, ME)
 

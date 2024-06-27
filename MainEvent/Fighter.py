@@ -11,7 +11,6 @@ class Fighter:
             "Wins": 0,
             "Losses": 0
         }
-        Self.Challenges = {}
         Self.Data.update({"RequiredExperience":(Self.Data["Level"]*225)*1.5})
 
     async def Level_Check(Self) -> bool:
