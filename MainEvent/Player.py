@@ -14,6 +14,7 @@ class Player:
             "Wallet":5000.0,
         }
         Self.Fighters = {}
+        Self.FightersTraining = []
         Self.Horses = {}
         Self.Challenges = {}
         print("Loading player data")

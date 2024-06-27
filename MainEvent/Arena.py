@@ -6,6 +6,7 @@ from Fighter import Fighter
 from Challenge import Challenge
 from random import randrange
 from Activites import Activities
+from Creatures import Creature, Creatures, CreatureCount
 
 class Arena:
     def __init__(Self, User, Interaction, MEReference) -> None:
@@ -16,28 +17,130 @@ class Arena:
         Self.InsufficientFunds = False
         Self.MaximumFighters = False
         Self.SelectedChallenge = None
+        Self.EarlyStop = False
         create_task(Self.Send_Arena_Panel(User, Interaction))
 
 
-    async def Train(Self, Interaction, TrainingFighter):
+    async def Train(Self, Interaction, TrainingFighter:Fighter):
         await Self.Send_Arena_Panel(Self.User, Interaction)
         BattleEmbed = Embed(title=f"⚔️ {Self.Player.Data["Name"]} has tasked {TrainingFighter.Data['Name']} with training! ⚔️")
+        TrainingFighterCopy = Fighter(TrainingFighter.Data["Name"])
+        TrainingFighterCopy.Data["Health"] = TrainingFighter.Data["Health"]
+        TrainingFighterCopy.Data["Power"] = TrainingFighter.Data["Power"]
+        TrainingFighterCopy.Data["Defense"] = TrainingFighter.Data["Defense"]
+
+        CreatureSelected:Creature = Creatures[randrange(0, CreatureCount)]()
+        
+        BattleEmbed.add_field(name="\u200b", value=f"{TrainingFighter.Data['Name']} will be fighting a {CreatureSelected.Name}", inline=False)
+
+        CreatureFighter:Fighter = Fighter(CreatureSelected.Name)
+        CreatureFighter.Data["Health"] = CreatureSelected.Health
+        CreatureFighter.Data["Power"] = CreatureSelected.Power
+        CreatureFighter.Data["Defense"] = CreatureSelected.Defense
 
         Message = await Self.ME.Channels["TrainingGrounds"].send(embed=BattleEmbed)
 
-        # while FighterOne.Data['Health'] > 0 or FighterTwo.Data['Health'] > 0:
+        while TrainingFighterCopy.Data['Health'] > 0 or CreatureFighter.Data['Health'] > 0:
+            FighterDescription = ""
+            CreatureDescription = ""
+            DamageDescription = ""
+            await sleep(7)
+            TrainingFighterCopyDefense = randrange(1, CreatureFighter.Data["Defense"]+1) 
+            CreatureFighterDefense = randrange(1, TrainingFighterCopy.Data["Defense"]+1) 
 
-        #     await Message.edit(embed=BattleEmbed)
+            TrainingFighterCopyDamage = randrange(1, TrainingFighterCopy.Data["Power"]+1)
+            CreatureFighterDamage = randrange(1, CreatureFighter.Data["Power"]+1)
 
-        # await Message.edit(embed=BattleEmbed)
+            TrainingFighterCopyAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
+            CreatureFighterAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
+
+            TrainingFighterCopyDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
+            CreatureFighterDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
+
+            if TrainingFighterCopyDamage - CreatureFighterDefense < 0: TrainingFighterCopyDamage = 0
+            else: TrainingFighterCopyDamage -= CreatureFighterDefense
+
+            if CreatureFighterDamage - TrainingFighterCopyDefense < 0: CreatureFighterDamage = 0
+            else: CreatureFighterDamage -= TrainingFighterCopyDefense
+
+            CreatureFighter.Data["Health"] -= TrainingFighterCopyDamage
+            if CreatureFighter.Data["Health"] <= 0: break
+            
+            TrainingFighterCopy.Data["Health"] -= CreatureFighterDamage
+            if TrainingFighterCopy.Data["Health"] <= 0: break
+
+            BattleEmbed = Embed(title=f"⚔️ {TrainingFighterCopy.Data['Name']} versus {CreatureFighter.Data['Name']} ⚔️")
+                
+            DamageDescription += f"{TrainingFighterCopy.Data['Name']} {TrainingFighterCopyAttackMove} and dealt {TrainingFighterCopyDamage}\n"
+            DamageDescription += f"{CreatureFighter.Data['Name']} defended {CreatureFighterDefensiveMove} and blocked {CreatureFighterDefense} damage\n\n"
+
+            DamageDescription += f"{CreatureFighter.Data['Name']} {CreatureFighterAttackMove} and dealt {CreatureFighterDamage}\n"
+            DamageDescription += f"{TrainingFighterCopy.Data['Name']} defended {TrainingFighterCopyDefensiveMove} and blocked {TrainingFighterCopyDefense} damage\n"
+
+            FighterDescription += f"{TrainingFighterCopy.Data['Name']}\n"
+            FighterDescription += f"💚{TrainingFighterCopy.Data['Health']}\n"
+            FighterDescription += f"💪{CreatureFighter.Data['Power']}\n"
+            FighterDescription += f"🛡️{TrainingFighterCopy.Data['Defense']}\n"
+            FighterDescription += f"💀{TrainingFighter.Data['CreatureKills']}\n"
+            
+            Clash = "⚔️"
+
+            CreatureDescription = ""
+            CreatureDescription += f"{CreatureFighter.Data['Name']}\n"
+            CreatureDescription += f"💚{CreatureFighter.Data['Health']}\n"
+            CreatureDescription += f"💪{CreatureFighter.Data['Power']}\n"
+            CreatureDescription += f"🛡️{CreatureFighter.Data['Defense']}\n"
+
+            BattleEmbed.add_field(name="\u200b", value=DamageDescription, inline=False)
+            BattleEmbed.add_field(name="\u200b", value=FighterDescription)
+            BattleEmbed.add_field(name="\u200b", value=Clash)
+            BattleEmbed.add_field(name="\u200b", value=CreatureDescription)
+
+            await Message.edit(embed=BattleEmbed)
+        Winner = None
+
+        if CreatureFighter.Data["Health"] <= 0:
+            Winner = TrainingFighterCopy
+            Loser = CreatureFighter
+        if TrainingFighterCopy.Data["Health"] <= 0:
+            Winner = CreatureFighter
+            Loser = TrainingFighterCopy
+        
+        BattleEmbed = Embed(title=f"⚔️ {Winner.Data['Name']} has defeated {Loser.Data['Name']} ⚔️")
+        
+        if Winner == TrainingFighterCopy:
+            TrainingFighterCopy.Data["Experience"] += CreatureSelected.Reward
+            TrainingFighterCopy.Data["CreatureKills"] += 1
+            await TrainingFighterCopy.Level_Check()
+    
+            BattleEmbed.add_field(name="\u200b", value=f"{TrainingFighterCopy.Data["Name"]} was rewarded {CreatureSelected.Reward}")
+            await Self.Player.Save_Fighters()
+
+        await Message.edit(embed=BattleEmbed)
+
+
+    async def Stop_Battle(Self, Interaction:Interaction):
+        if Interaction.user.id in [713798389908897822, 897410636819083304]:
+            BattleView = View(timeout=14400)
+            BattleEmbed = Embed(title=f"⚔️ Battle Stopped Early⚔️")
+            Self.EarlyStop = True
+            NotificationMessage = await Interaction.channel.send(view=BattleView, embed=BattleEmbed)
+            await sleep(4)
+            await NotificationMessage.delete()
+            await Interaction.message.edit(view=BattleView, embed=BattleEmbed)
 
 
     async def Battle(Self, Challenge, Exhibition=False):
+        BattleView = View(timeout=14400)
         if Exhibition == True:
             BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['ChallengerFighter'].Data['Name']} versus {Challenge.Data['TargetFighter'].Data['Name']} ⚔️")
         else:
             BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['Target'].Data['Name']} versus {Challenge.Data['Challenger'].Data['Name']} ⚔️")
         TargetDescription = ""
+
+        StopButton = Button(label="Stop", row=0)
+        StopButton.callback = lambda Interaction: Self.Stop_Battle(Interaction)
+        BattleView.add_item(StopButton)
         
         PlayerOne:Player = Challenge.Data['Target']
         FighterOne = Fighter(Challenge.Data['TargetFighter'].Data['Name'])
@@ -75,46 +178,89 @@ class Arena:
         BattleEmbed.add_field(name="\u200b", value=Clash)
         BattleEmbed.add_field(name="\u200b", value=ChallengerDescription)
 
-        Message = await Self.ME.Channels["Arena"].send(embed=BattleEmbed)
+        Message = await Self.ME.Channels["Arena"].send(view=BattleView, embed=BattleEmbed)
 
         while FighterOne.Data['Health'] > 0 or FighterTwo.Data['Health'] > 0:
+            if Self.EarlyStop == True:
+                print("Battle Stopped")
+                return
+            await sleep(4)
             TargetDescription = ""
             ChallengerDescription = ""
             DamageDescription = ""
-            await sleep(7)
-            FighterOneDefense = randrange(1, FighterOne.Data["Defense"]+1) 
-            FighterTwoDefense = randrange(1, FighterTwo.Data["Defense"]+1) 
 
             FighterOneDamage = randrange(1, FighterOne.Data["Power"]+1)
-            FighterTwoDamage = randrange(1, FighterTwo.Data["Power"]+1)
-
             FighterOneAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
-            FighterTwoAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
-
-            FighterOneDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
+            FighterTwoDefense = randrange(1, FighterTwo.Data["Defense"]+1)
             FighterTwoDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
 
-            if FighterOneDamage - FighterTwoDefense < 0: FighterOneDamage = 0
+            if FighterOneDamage - FighterTwoDefense < 1: FighterOneDamage = 1
             else: FighterOneDamage -= FighterTwoDefense
-
-            if FighterTwoDamage - FighterOneDefense < 0: FighterTwoDamage = 0
-            else: FighterTwoDamage -= FighterOneDefense
 
             FighterTwo.Data["Health"] -= FighterOneDamage
             if FighterTwo.Data["Health"] <= 0: break
             
-            FighterOne.Data["Health"] -= FighterTwoDamage
-            if FighterOne.Data["Health"] <= 0: break
 
             if Exhibition == True:
                 BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['ChallengerFighter'].Data['Name']} versus {Challenge.Data['TargetFighter'].Data['Name']} ⚔️")
             else:
                 BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['Target'].Data['Name']} versus {Challenge.Data['Challenger'].Data['Name']} ⚔️")
                 
-            DamageDescription += f"{FighterOne.Data['Name']} {FighterOneAttackMove} and dealt {FighterOneDamage}\n"
+            DamageDescription += f"{FighterOne.Data['Name']} {FighterOneAttackMove} and dealt {FighterOneDamage}\n\n"
             DamageDescription += f"{FighterTwo.Data['Name']} defended {FighterTwoDefensiveMove} and blocked {FighterTwoDefense} damage\n\n"
 
-            DamageDescription += f"{FighterTwo.Data['Name']} {FighterTwoAttackMove} and dealt {FighterTwoDamage}\n"
+            TargetDescription += f"{FighterOne.Data['Name']}\n"
+            if Exhibition == False:
+                TargetDescription += f"💠{FighterOne.Data['Level']}\n"
+            TargetDescription += f"💚{FighterOne.Data['Health']}\n"
+            TargetDescription += f"💪{FighterTwo.Data['Power']}\n"
+            TargetDescription += f"🛡️{FighterOne.Data['Defense']}\n"
+            if Exhibition == False:
+                TargetDescription += f"🏆{FighterOne.Data['Wins']}\n"
+                TargetDescription += f"💀{FighterOne.Data['Losses']}\n"
+            
+            Clash = "⚔️"
+
+            ChallengerDescription = ""
+            ChallengerDescription += f"{FighterTwo.Data['Name']}\n"
+            if Exhibition == False:
+                ChallengerDescription += f"💠{FighterTwo.Data['Level']}\n"
+            ChallengerDescription += f"💚{FighterTwo.Data['Health']}\n"
+            ChallengerDescription += f"💪{FighterTwo.Data['Power']}\n"
+            ChallengerDescription += f"🛡️{FighterTwo.Data['Defense']}\n"
+            if Exhibition == False:
+                ChallengerDescription += f"🏆{FighterTwo.Data['Wins']}\n"
+                ChallengerDescription += f"💀{FighterTwo.Data['Losses']}\n"
+            BattleEmbed.add_field(name="\u200b", value=DamageDescription, inline=False)
+            BattleEmbed.add_field(name="\u200b", value=TargetDescription)
+            BattleEmbed.add_field(name="\u200b", value=Clash)
+            BattleEmbed.add_field(name="\u200b", value=ChallengerDescription)
+
+            if Self.EarlyStop != True:
+                await Message.edit(embed=BattleEmbed)
+
+            await sleep(4)
+            TargetDescription = ""
+            ChallengerDescription = ""
+            DamageDescription = ""
+
+            if Exhibition == True:
+                BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['ChallengerFighter'].Data['Name']} versus {Challenge.Data['TargetFighter'].Data['Name']} ⚔️")
+            else:
+                BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['Target'].Data['Name']} versus {Challenge.Data['Challenger'].Data['Name']} ⚔️")
+
+            FighterTwoDamage = randrange(1, FighterTwo.Data["Power"]+1)
+            FighterTwoAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
+            FighterOneDefense = randrange(1, FighterOne.Data["Defense"]+1) 
+            FighterOneDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
+
+            if FighterTwoDamage - FighterOneDefense < 1: FighterTwoDamage = 1
+            else: FighterTwoDamage -= FighterOneDefense
+
+            FighterOne.Data["Health"] -= FighterTwoDamage
+            if FighterOne.Data["Health"] <= 0: break
+
+            DamageDescription += f"{FighterTwo.Data['Name']} {FighterTwoAttackMove} and dealt {FighterTwoDamage}\n\n"
             DamageDescription += f"{FighterOne.Data['Name']} defended {FighterOneDefensiveMove} and blocked {FighterOneDefense} damage\n"
 
             TargetDescription += f"{FighterOne.Data['Name']}\n"
@@ -144,7 +290,9 @@ class Arena:
             BattleEmbed.add_field(name="\u200b", value=Clash)
             BattleEmbed.add_field(name="\u200b", value=ChallengerDescription)
 
-            await Message.edit(embed=BattleEmbed)
+            if Self.EarlyStop != True:
+                await Message.edit(embed=BattleEmbed)
+
         Winner = None
 
         if FighterTwo.Data["Health"] <= 0:
@@ -158,7 +306,8 @@ class Arena:
             PlayerLoser:Player = PlayerOne
             Loser = FighterOne
         
-        BattleEmbed = Embed(title=f"⚔️ {Winner.Data['Name']} has defeated {Loser.Data['Name']} ⚔️")
+        if Winner != None:
+            BattleEmbed = Embed(title=f"⚔️ {Winner.Data['Name']} has defeated {Loser.Data['Name']} ⚔️")
         
         if Exhibition == False:
             PlayerWinner.Data["Rank"] += 125
@@ -171,7 +320,8 @@ class Arena:
             await PlayerOne.Save_Challenges()
             await PlayerWinner.Save_Data()
 
-        await Message.edit(embed=BattleEmbed)
+        if Self.EarlyStop != True:
+            await Message.edit(embed=BattleEmbed)
 
 
     async def Buy_Fighter(Self, Interaction):
@@ -445,7 +595,8 @@ class Arena:
             FighterDescription += f"💪 {Self.SelectedFighter.Data["Power"]}\n"
             FighterDescription += f"🛡️ {Self.SelectedFighter.Data["Defense"]}\n"
             FighterDescription += f"🏆 {Self.SelectedFighter.Data["Wins"]}\n"
-            FighterDescription += f"💀 {Self.SelectedFighter.Data["Losses"]}\n"
+            FighterDescription += f"⚰️ {Self.SelectedFighter.Data["Losses"]}\n"
+            FighterDescription += f"💀 {Self.SelectedFighter.Data['CreatureKills']}\n"
             print(type(Self.SelectedFighter.Data["Name"]))
             FighterChoice.placeholder = Self.SelectedFighter.Data["Name"]
 
@@ -470,7 +621,8 @@ class Arena:
             TargetDescription += f"💪{Self.SelectedChallenge.Data['TargetFighter'].Data['Power']}\n"
             TargetDescription += f"🛡️{Self.SelectedChallenge.Data['TargetFighter'].Data['Defense']}\n"
             TargetDescription += f"🏆{Self.SelectedChallenge.Data['TargetFighter'].Data['Wins']}\n"
-            TargetDescription += f"💀{Self.SelectedChallenge.Data['TargetFighter'].Data['Losses']}\n"
+            TargetDescription += f"⚰️{Self.SelectedChallenge.Data['TargetFighter'].Data['Losses']}\n"
+            TargetDescription += f"💀{Self.SelectedChallenge.Data['TargetFighter'].Data['CreatureKills']}\n"
             
             Clash = "⚔️"
 
@@ -480,7 +632,8 @@ class Arena:
             ChallengerDescription += f"💪{Self.SelectedChallenge.Data['ChallengerFighter'].Data['Power']}\n"
             ChallengerDescription += f"🛡️{Self.SelectedChallenge.Data['ChallengerFighter'].Data['Defense']}\n"
             ChallengerDescription += f"🏆{Self.SelectedChallenge.Data['ChallengerFighter'].Data['Wins']}\n"
-            ChallengerDescription += f"💀{Self.SelectedChallenge.Data['ChallengerFighter'].Data['Losses']}\n"
+            ChallengerDescription += f"⚰️{Self.SelectedChallenge.Data['ChallengerFighter'].Data['Losses']}\n"
+            ChallengerDescription += f"💀{Self.SelectedChallenge.Data['ChallengerFighter'].Data['CreatureKills']}\n"
 
             ArenaEmbed.add_field(name="\u200b", value=ChallengeDescription, inline=False)
             ArenaEmbed.add_field(name="\u200b", value=TargetDescription)

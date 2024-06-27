@@ -97,8 +97,15 @@ async def on_ready() -> None:
     ME.MainEventLogger.log(20, Message)
     await ME.Bot.change_presence(activity=Game('$me'))
 
-    ME.Channels.update({"Arena":ME.Bot.get_channel(1255299515297169428), 
-                        "TrainingGrounds": ME.Bot.get_channel(1255663997718368256)})
+
+    if ME.Bot.guilds[0].id == 1127838810097594438:
+        ME.Channels.update({"Arena":ME.Bot.get_channel(1255299515297169428), 
+                            "TrainingGrounds": ME.Bot.get_channel(1255663997718368256)})
+    elif ME.Bot.guilds[0].id == 1219494686369255444:
+        ME.Channels.update({"Lounge":ME.Bot.get_channel(1255673883554484428),
+                            "Arena":ME.Bot.get_channel(1255673917545386014), 
+                            "TrainingGrounds": ME.Bot.get_channel(1255673944111976509),
+                            "HorseRacing": ME.Bot.get_channel(1255673942505689188)})
 
     Populate_Players()
 

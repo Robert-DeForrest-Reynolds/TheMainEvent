@@ -5,11 +5,13 @@ class Fighter:
             "Level": 1,
             "Experience": 0,
             "Health": 1200,
-            "Power": 400,
-            "Defense": 400,
+            "Power": 650,
+            "Defense": 650,
+            "CreatureKills":0,
             "Wins": 0,
             "Losses": 0
         }
+        Self.Challenges = {}
         Self.Data.update({"RequiredExperience":(Self.Data["Level"]*225)*1.5})
 
     async def Level_Check(Self) -> bool:
