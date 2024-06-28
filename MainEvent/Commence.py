@@ -101,7 +101,8 @@ async def on_ready() -> None:
 
 
     if ME.Bot.guilds[0].id == 1127838810097594438:
-        ME.Channels.update({"Arena":ME.Bot.get_channel(1255299515297169428), 
+        ME.Channels.update({"Lounge":ME.Bot.get_channel(1255299478408265808),
+                            "Arena":ME.Bot.get_channel(1255299515297169428), 
                             "TrainingGrounds": ME.Bot.get_channel(1255663997718368256)})
     elif ME.Bot.guilds[0].id == 1219494686369255444:
         ME.Channels.update({"Lounge":ME.Bot.get_channel(1255673883554484428),

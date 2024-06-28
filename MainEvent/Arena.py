@@ -79,7 +79,7 @@ class Arena:
 
             FighterDescription += f"{TrainingFighterCopy.Data['Name']}\n"
             FighterDescription += f"💚{TrainingFighterCopy.Data['Health']}\n"
-            FighterDescription += f"💪{CreatureFighter.Data['Power']}\n"
+            FighterDescription += f"💪{TrainingFighterCopy.Data['Power']}\n"
             FighterDescription += f"🛡️{TrainingFighterCopy.Data['Defense']}\n"
             FighterDescription += f"💀{TrainingFighter.Data['CreatureKills']}\n"
             
@@ -155,7 +155,7 @@ class Arena:
         if Exhibition == False:
             TargetDescription += f"💠{FighterOne.Data['Level']}\n"
         TargetDescription += f"💚{FighterOne.Data['Health']}\n"
-        TargetDescription += f"💪{FighterTwo.Data['Power']}\n"
+        TargetDescription += f"💪{FighterOne.Data['Power']}\n"
         TargetDescription += f"🛡️{FighterOne.Data['Defense']}\n"
         if Exhibition == False:
             TargetDescription += f"🏆{FighterOne.Data['Wins']}\n"
@@ -213,7 +213,7 @@ class Arena:
             if Exhibition == False:
                 TargetDescription += f"💠{FighterOne.Data['Level']}\n"
             TargetDescription += f"💚{FighterOne.Data['Health']}\n"
-            TargetDescription += f"💪{FighterTwo.Data['Power']}\n"
+            TargetDescription += f"💪{FighterOne.Data['Power']}\n"
             TargetDescription += f"🛡️{FighterOne.Data['Defense']}\n"
             if Exhibition == False:
                 TargetDescription += f"🏆{FighterOne.Data['Wins']}\n"
@@ -267,7 +267,7 @@ class Arena:
             if Exhibition == False:
                 TargetDescription += f"💠{FighterOne.Data['Level']}\n"
             TargetDescription += f"💚{FighterOne.Data['Health']}\n"
-            TargetDescription += f"💪{FighterTwo.Data['Power']}\n"
+            TargetDescription += f"💪{FighterOne.Data['Power']}\n"
             TargetDescription += f"🛡️{FighterOne.Data['Defense']}\n"
             if Exhibition == False:
                 TargetDescription += f"🏆{FighterOne.Data['Wins']}\n"
@@ -307,7 +307,7 @@ class Arena:
             Loser = FighterOne
         
         if Winner != None:
-            BattleEmbed = Embed(title=f"⚔️ {Winner.Data['Name']} has defeated {Loser.Data['Name']} ⚔️")
+            BattleEmbed = Embed(title=f"⚔️ {Winner.Data['Name']} has defeated {Loser.Data['Name']} with 💚{Winner.Data["Health"]} remaining ⚔️")
         
         if Exhibition == False:
             PlayerWinner.Data["Rank"] += 125
@@ -490,7 +490,7 @@ class Arena:
         FighterTwo.Data["Power"] = int(FighterTwoData[2])
         FighterTwo.Data["Defense"] = int(FighterTwoData[3])
 
-        ExhibitionChallenge = Challenge(None, FighterOne, None, FighterTwo, Exhibition=True)
+        ExhibitionChallenge = Challenge(None, FighterTwo, None, FighterOne, Exhibition=True)
         await Self.Battle(ExhibitionChallenge, Exhibition=True)
         await Self.Send_Arena_Panel(Self.User, Interaction)
 
