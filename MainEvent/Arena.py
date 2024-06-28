@@ -22,8 +22,10 @@ class Arena:
 
 
     async def Train(Self, Interaction, TrainingFighter:Fighter):
+        if TrainingFighter.Data["Name"] in Self.Player.FightersTraining: return
         await Self.Send_Arena_Panel(Self.User, Interaction)
         BattleEmbed = Embed(title=f"⚔️ {Self.Player.Data["Nick"]} has tasked {TrainingFighter.Data['Name']} with training! ⚔️")
+        Self.Player.FightersTraining.append(TrainingFighter.Data["Name"])
         TrainingFighterCopy = Fighter(TrainingFighter.Data["Name"])
         TrainingFighterCopy.Data["Health"] = TrainingFighter.Data["Health"]
         TrainingFighterCopy.Data["Power"] = TrainingFighter.Data["Power"]
@@ -45,8 +47,8 @@ class Arena:
             CreatureDescription = ""
             DamageDescription = ""
             await sleep(7)
-            TrainingFighterCopyDefense = randrange(1, CreatureFighter.Data["Defense"]+1) 
-            CreatureFighterDefense = randrange(1, TrainingFighterCopy.Data["Defense"]+1) 
+            TrainingFighterCopyDefense = randrange(1, TrainingFighterCopy.Data["Defense"]+1) 
+            CreatureFighterDefense = randrange(1, CreatureFighter.Data["Defense"]+1) 
 
             TrainingFighterCopyDamage = randrange(1, TrainingFighterCopy.Data["Power"]+1)
             CreatureFighterDamage = randrange(1, CreatureFighter.Data["Power"]+1)
@@ -57,10 +59,10 @@ class Arena:
             TrainingFighterCopyDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
             CreatureFighterDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
 
-            if TrainingFighterCopyDamage - CreatureFighterDefense < 0: TrainingFighterCopyDamage = 0
+            if TrainingFighterCopyDamage - CreatureFighterDefense < 1: TrainingFighterCopyDamage = 1
             else: TrainingFighterCopyDamage -= CreatureFighterDefense
 
-            if CreatureFighterDamage - TrainingFighterCopyDefense < 0: CreatureFighterDamage = 0
+            if CreatureFighterDamage - TrainingFighterCopyDefense < 1: CreatureFighterDamage = 1
             else: CreatureFighterDamage -= TrainingFighterCopyDefense
 
             CreatureFighter.Data["Health"] -= TrainingFighterCopyDamage
@@ -109,12 +111,16 @@ class Arena:
         BattleEmbed = Embed(title=f"⚔️ {Winner.Data['Name']} has defeated {Loser.Data['Name']} ⚔️")
         
         if Winner == TrainingFighterCopy:
-            TrainingFighterCopy.Data["Experience"] += CreatureSelected.Reward
-            TrainingFighterCopy.Data["CreatureKills"] += 1
-            await TrainingFighterCopy.Level_Check()
+            Self.Player.Data["Rank"] += 5
+            TrainingFighter.Data["Experience"] += CreatureSelected.Reward
+            TrainingFighter.Data["CreatureKills"] += 1
+            await TrainingFighter.Level_Check()
     
-            BattleEmbed.add_field(name="\u200b", value=f"{TrainingFighterCopy.Data["Name"]} was rewarded {CreatureSelected.Reward}")
+            BattleEmbed.add_field(name="\u200b", value=f"{TrainingFighter.Data["Name"]} was rewarded {CreatureSelected.Reward} experience, and {Self.Player.Data['Name']} gained 👑5")
+            await Self.Player.Save_Data()
             await Self.Player.Save_Fighters()
+
+        Self.Player.FightersTraining.remove(TrainingFighter.Data["Name"])
 
         await Message.edit(embed=BattleEmbed)
 
@@ -200,7 +206,6 @@ class Arena:
             FighterTwo.Data["Health"] -= FighterOneDamage
             if FighterTwo.Data["Health"] <= 0: break
             
-
             if Exhibition == True:
                 BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['ChallengerFighter'].Data['Name']} versus {Challenge.Data['TargetFighter'].Data['Name']} ⚔️")
             else:
@@ -495,7 +500,6 @@ class Arena:
         await Self.Send_Arena_Panel(Self.User, Interaction)
 
 
-
     async def Send_Exhibition_Panel(Self, Interaction, FighterOneData=None, FighterTwoData=None):
         ExhibitionView = View(timeout=144000)
         ExhibitionEmbed = Embed(title=f"Name your fighters!")
@@ -552,6 +556,9 @@ class Arena:
         TargetDescription = ""
         FighterDescription = ""
 
+        ArenaDescription += f"👑 {Self.Player.Data["Rank"]:,}\n"
+        ArenaDescription += f"💵 {Self.Player.Data["Wallet"]:,}\n"
+
         if Self.InsufficientFunds == True:
             ArenaEmbed.add_field(name="\u200b", value=f"💸 You don't have enough money to buy a fighter! 💸", inline=False)
             Self.InsufficientFunds = False
@@ -567,10 +574,6 @@ class Arena:
                                 custom_id=f"ChallengesChoice")
             ChallengesChoice.callback = lambda Interaction: Self.Select_Challenge(Interaction)
             ArenaView.add_item(ChallengesChoice)
-
-        ArenaDescription += f"👑 {Self.Player.Data["Rank"]:,}\n"
-        ArenaDescription += f"💵 {Self.Player.Data["Wallet"]:,}\n"
-
         BuyFighterButton = Button(label="Buy Fighter", row=3)
         BuyFighterButton.callback = lambda Interaction: Self.Buy_Fighter(Interaction)
         ArenaView.add_item(BuyFighterButton)
@@ -597,10 +600,12 @@ class Arena:
             ArenaEmbed.add_field(name="⚔️ Challenged ⚔️", value=f"You challenged {Self.Target.Data['Nick']} ({Self.Target.Data['Name']})!", inline=False)
             Self.Target = None
 
+        ArenaEmbed.add_field(name="\u200b", value=ArenaDescription, inline=False)
+
         if Self.SelectedFighter != None:
             ArenaEmbed.add_field(name="\u200b", value="\u200b", inline=False)
-            ArenaEmbed.add_field(name=Self.SelectedFighter.Data["Name"], value="\u200b", inline=False)
             FighterDescription += f"💠 {Self.SelectedFighter.Data["Level"]}\n"
+            FighterDescription += f"{Self.SelectedFighter.Data["Experience"]}/{Self.SelectedFighter.Data["ExperienceRequired"]}\n"
             FighterDescription += f"💚 {Self.SelectedFighter.Data["Health"]}\n"
             FighterDescription += f"💪 {Self.SelectedFighter.Data["Power"]}\n"
             FighterDescription += f"🛡️ {Self.SelectedFighter.Data["Defense"]}\n"
@@ -616,8 +621,8 @@ class Arena:
             TrainingButton = Button(label="Train", row=3)
             TrainingButton.callback = lambda Interaction: Self.Train(Interaction, Self.SelectedFighter)
             ArenaView.add_item(TrainingButton)
-
-        ArenaEmbed.add_field(name="\u200b", value=ArenaDescription + "\n" + FighterDescription, inline=False)
+            ArenaEmbed.add_field(name=Self.SelectedFighter.Data["Name"], value="\u200b", inline=False)
+            ArenaEmbed.add_field(name="\u200b", value=FighterDescription, inline=False)
 
         if Self.SelectedChallenge != None:
             Challenge = Self.SelectedChallenge

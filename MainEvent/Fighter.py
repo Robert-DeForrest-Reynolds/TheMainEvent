@@ -4,14 +4,16 @@ class Fighter:
             "Name":Name,
             "Level": 1,
             "Experience": 0,
-            "Health": 1200,
-            "Power": 650,
-            "Defense": 650,
+            "ExperienceRequired":0,
+            "Health": 150,
+            "Power": 20,
+            "Defense": 15,
             "CreatureKills":0,
             "Wins": 0,
             "Losses": 0
         }
-        Self.Data.update({"RequiredExperience":(Self.Data["Level"]*225)*1.5})
+        Self.Inventory = []
+        Self.Data.update({"ExperienceRequired":(Self.Data["Level"]*225)*1.5})
 
     async def Level_Check(Self) -> bool:
         if Self.Data["Experience"] >= Self.Data["ExperienceRequired"]:

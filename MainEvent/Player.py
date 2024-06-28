@@ -19,15 +19,12 @@ class Player:
         Self.FightersTraining = []
         Self.Horses = {}
         Self.Challenges = {}
-        print("Loading player data")
         Self.Load_Data()
         Self.Load_Fighters()
-        print("Finish loading player data")
 
 
     async def Save_Challenges(Self) -> None:
         with open(join("Data", f"{Self.Data["UUID"]}.challenges.medata"), 'w') as SaveFile:
-            print(f"Saving {Self.Data['UUID']}")
             SaveData = ""
             for Challenge in Self.Challenges.values():
                 SaveData += (f"{Challenge.Data['Challenger'].Data['Name']}~{Challenge.Data['ChallengerFighter'].Data['Name']}~"+
@@ -38,7 +35,6 @@ class Player:
     def Load_Challenges(Self) -> None:
         if exists(join("Data", f"{Self.Data["UUID"]}.challenges.medata")):
             with open(join("Data", f"{Self.Data["UUID"]}.challenges.medata"), 'r') as SaveFile:
-                print(f"Loading {Self.Data['UUID']} challenges")
                 Data = SaveFile.readlines()
                 for Field in Data:
                     Datum = Field.split("~")
@@ -53,19 +49,16 @@ class Player:
 
     async def Save_Fighters(Self) -> None:
         with open(join("Data", f"{Self.Data["UUID"]}.fighters.medata"), 'w') as SaveFile:
-            print(f"Saving {Self.Data['UUID']} fighters")
             SaveData = ""
             for Fighter in Self.Fighters.values():
-                SaveData += (f"{Fighter.Data['Name']}~{Fighter.Data['Level']}~{Fighter.Data['Health']}~{Fighter.Data['Power']}~" +
-                             f"{Fighter.Data['Defense']}~{Fighter.Data['Wins']}~{Fighter.Data['Losses']}\n")
+                SaveData += (f"{Fighter.Data['Name']}~{Fighter.Data['Level']}~{Fighter.Data['Experience']}~{Fighter.Data['Health']}~{Fighter.Data['Power']}~" +
+                             f"{Fighter.Data['Defense']}~{Fighter.Data['Wins']}~{Fighter.Data['Losses']}~{Fighter.Data['CreatureKills']}\n")
             SaveFile.write(SaveData)
 
 
     def Load_Fighters(Self) -> None:
         if exists(join("Data", f"{Self.Data["UUID"]}.fighters.medata")):
-            print("Fuck")
             with open(join("Data", f"{Self.Data["UUID"]}.fighters.medata"), 'r') as SaveFile:
-                print(f"Loading {Self.Data['UUID']}'s fighters")
                 Data = SaveFile.readlines()
                 for Field in Data:
                     print(Self.Data["Name"])
@@ -73,16 +66,17 @@ class Player:
                     NewFighter = Fighter(Datum[0])
                     Self.Fighters.update({NewFighter.Data["Name"]:NewFighter})
                     NewFighter.Data["Level"] = int(Datum[1])
-                    NewFighter.Data["Health"] = int(Datum[2])
-                    NewFighter.Data["Power"] = int(Datum[3])
-                    NewFighter.Data["Defense"] = int(Datum[4])
-                    NewFighter.Data["Wins"] = int(Datum[5])
-                    NewFighter.Data["Losses"] = int(Datum[6])
+                    NewFighter.Data["Experience"] = int(Datum[2])
+                    NewFighter.Data["Health"] = int(Datum[3])
+                    NewFighter.Data["Power"] = int(Datum[4])
+                    NewFighter.Data["Defense"] = int(Datum[5])
+                    NewFighter.Data["Wins"] = int(Datum[6])
+                    NewFighter.Data["Losses"] = int(Datum[7])
+                    NewFighter.Data["CreatureKills"] = int(Datum[8])
 
 
     async def Save_Data(Self) -> None:
         with open(join("Data", f"{Self.Data["UUID"]}.medata"), 'w') as SaveFile:
-            print(f"Saving {Self.Data['UUID']} data")
             SaveData = ""
             for Key, Value in Self.Data.items():
                 SaveData += f"{Key}~{Value}\n"
@@ -92,7 +86,6 @@ class Player:
     def Load_Data(Self) -> None:
         if exists(join("Data", f"{Self.Data["UUID"]}.medata")):
             with open(join("Data", f"{Self.Data["UUID"]}.medata"), 'r') as SaveFile:
-                print(f"Loading {Self.Data['UUID']}'s data")
                 Data = SaveFile.readlines()
                 for Field in Data:
                     Exclusions = ["UUID", "MemberReference"]
