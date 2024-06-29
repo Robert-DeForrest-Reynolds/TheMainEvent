@@ -47,11 +47,12 @@ class Arena:
             CreatureDescription = ""
             DamageDescription = ""
             await sleep(7)
-            TrainingFighterCopyDefense = randrange(1, TrainingFighterCopy.Data["Defense"]+1) 
-            CreatureFighterDefense = randrange(1, CreatureFighter.Data["Defense"]+1) 
+            TrainingFighterCopyDefense = randrange(0, TrainingFighterCopy.Data["Defense"]+1) 
+            CreatureFighterDefense = randrange(0, CreatureFighter.Data["Defense"]+1) 
 
-            TrainingFighterCopyDamage = randrange(1, TrainingFighterCopy.Data["Power"]+1)
-            CreatureFighterDamage = randrange(1, CreatureFighter.Data["Power"]+1)
+            print(TrainingFighterCopy.Data["Power"]//4)
+            TrainingFighterCopyDamage = randrange(TrainingFighterCopy.Data["Power"]//4, TrainingFighterCopy.Data["Power"]+1)
+            CreatureFighterDamage = randrange(CreatureFighter.Data["Power"]//4, CreatureFighter.Data["Power"]+1)
 
             TrainingFighterCopyAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
             CreatureFighterAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
@@ -439,8 +440,10 @@ class Arena:
 
 
     async def Select_Challenge(Self, Interaction):
-        Self.SelectedChallenge = Self.Player.Challenges[Interaction.data["values"][0]]
-        await Self.Send_Arena_Panel(Self.User, Interaction)
+        for Player in Self.ME.Players.values():
+            if Player.Data["Nick"] == Interaction.data["values"][0]:
+                Self.SelectedChallenge = Self.Player.Challenges[Player.Data["Name"]]
+                await Self.Send_Arena_Panel(Self.User, Interaction)
 
 
     async def Accept_Challenge(Self, Interaction:Interaction, Challenge):
@@ -627,7 +630,7 @@ class Arena:
         if Self.SelectedChallenge != None:
             Challenge = Self.SelectedChallenge
             ChallengeDescription += f"{Self.SelectedChallenge.Data["Challenger"].Data['Nick']} challenges you!\n"
-            ChallengeDescription += f"They proposed {Self.SelectedChallenge.Data["TargetFighter"].Data['Nick']} versus {Self.SelectedChallenge.Data["ChallengerFighter"].Data['Nick']}\n"
+            ChallengeDescription += f"They proposed {Self.SelectedChallenge.Data["TargetFighter"].Data['Name']} versus {Self.SelectedChallenge.Data["ChallengerFighter"].Data['Name']}\n"
 
             TargetDescription += f"{Self.SelectedChallenge.Data['TargetFighter'].Data['Name']}\n"
             TargetDescription += f"💠{Self.SelectedChallenge.Data['TargetFighter'].Data['Level']}\n"

@@ -6,8 +6,8 @@ class Fighter:
             "Experience": 0,
             "ExperienceRequired":0,
             "Health": 150,
-            "Power": 20,
-            "Defense": 15,
+            "Power": 25,
+            "Defense": 20,
             "CreatureKills":0,
             "Wins": 0,
             "Losses": 0

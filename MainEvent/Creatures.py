@@ -12,7 +12,7 @@ class Karragan():
         Self.Health = 80
         Self.Power = 30
         Self.Defense = 30
-        Self.Reward = 100
+        Self.Reward = 60
 
 
 class Goblin():
@@ -28,27 +28,27 @@ class Wendigo():
     def __init__(Self):
         Self.Name = "Goblin"
         Self.Health = 80
-        Self.Power = 30
-        Self.Defense = 30
-        Self.Reward = 100
+        Self.Power = 35
+        Self.Defense = 35
+        Self.Reward = 70
 
 
 class Deathclaw():
     def __init__(Self):
         Self.Name = "Goblin"
-        Self.Health = 80
-        Self.Power = 30
-        Self.Defense = 30
-        Self.Reward = 100
+        Self.Health = 90
+        Self.Power = 50
+        Self.Defense = 80
+        Self.Reward = 130
 
 
 class JuniperJumper():
     def __init__(Self):
         Self.Name = "Juniper Jumper"
-        Self.Health = 80
+        Self.Health = 70
         Self.Power = 30
         Self.Defense = 30
-        Self.Reward = 100
+        Self.Reward = 60
 
 
 class Yujago():
@@ -57,7 +57,7 @@ class Yujago():
         Self.Health = 125
         Self.Power = 65
         Self.Defense = 45
-        Self.Reward = 155
+        Self.Reward = 110
 
 
 class Murial():
@@ -66,7 +66,7 @@ class Murial():
         Self.Health = 200
         Self.Power = 100
         Self.Defense = 100
-        Self.Reward = 295
+        Self.Reward = 200
 
 
 Creatures = [Karragan,
