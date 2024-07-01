@@ -60,10 +60,10 @@ class Arena:
             TrainingFighterCopyDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
             CreatureFighterDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
 
-            if TrainingFighterCopyDamage - CreatureFighterDefense < 1: TrainingFighterCopyDamage = 1
+            if TrainingFighterCopyDamage - CreatureFighterDefense < TrainingFighterCopy.Data["Power"]//4: TrainingFighterCopyDamage = TrainingFighterCopy.Data["Power"]//4
             else: TrainingFighterCopyDamage -= CreatureFighterDefense
 
-            if CreatureFighterDamage - TrainingFighterCopyDefense < 1: CreatureFighterDamage = 1
+            if CreatureFighterDamage - TrainingFighterCopyDefense < TrainingFighterCopy.Data["Power"]//4: CreatureFighterDamage = TrainingFighterCopy.Data["Power"]//4
             else: CreatureFighterDamage -= TrainingFighterCopyDefense
 
             CreatureFighter.Data["Health"] -= TrainingFighterCopyDamage
@@ -196,12 +196,12 @@ class Arena:
             ChallengerDescription = ""
             DamageDescription = ""
 
-            FighterOneDamage = randrange(1, FighterOne.Data["Power"]+1)
+            FighterOneDamage = randrange(FighterOne.Data["Power"]//4, FighterOne.Data["Power"]+1)
             FighterOneAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
             FighterTwoDefense = randrange(1, FighterTwo.Data["Defense"]+1)
             FighterTwoDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
 
-            if FighterOneDamage - FighterTwoDefense < 1: FighterOneDamage = 1
+            if FighterOneDamage - FighterTwoDefense < FighterOne.Data["Power"]: FighterOneDamage = FighterOne.Data["Power"]
             else: FighterOneDamage -= FighterTwoDefense
 
             FighterTwo.Data["Health"] -= FighterOneDamage
@@ -255,12 +255,12 @@ class Arena:
             else:
                 BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['Target'].Data['Nick']} versus {Challenge.Data['Challenger'].Data['Nick']} ⚔️")
 
-            FighterTwoDamage = randrange(1, FighterTwo.Data["Power"]+1)
+            FighterTwoDamage = randrange(FighterTwo.Data["Power"]//4, FighterTwo.Data["Power"]+1)
             FighterTwoAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
-            FighterOneDefense = randrange(1, FighterOne.Data["Defense"]+1) 
+            FighterOneDefense = randrange(FighterTwo.Data["Power"]//4, FighterOne.Data["Defense"]+1) 
             FighterOneDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
 
-            if FighterTwoDamage - FighterOneDefense < 1: FighterTwoDamage = 1
+            if FighterTwoDamage - FighterOneDefense < FighterTwo.Data["Power"]//4: FighterTwoDamage = FighterTwo.Data["Power"]//4
             else: FighterTwoDamage -= FighterOneDefense
 
             FighterOne.Data["Health"] -= FighterTwoDamage

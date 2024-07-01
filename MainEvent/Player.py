@@ -57,6 +57,7 @@ class Player:
 
 
     def Load_Fighters(Self) -> None:
+        print(Self.Data["Name"])
         if exists(join(Self.ME.DataPath, f"{Self.Data["UUID"]}.fighters.medata")):
             with open(join(Self.ME.DataPath, f"{Self.Data["UUID"]}.fighters.medata"), 'r') as SaveFile:
                 Data = SaveFile.readlines()
