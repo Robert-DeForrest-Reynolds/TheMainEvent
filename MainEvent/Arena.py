@@ -196,12 +196,15 @@ class Arena:
             ChallengerDescription = ""
             DamageDescription = ""
 
-            FighterOneDamage = randrange(FighterOne.Data["Power"]//4, FighterOne.Data["Power"]+1)
+            FighterOneRoll = randrange(FighterOne.Data["Power"]//4, FighterOne.Data["Power"]+1)
+            FighterOneDamage = FighterOneRoll
+
             FighterOneAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
-            FighterTwoDefense = randrange(1, FighterTwo.Data["Defense"]+1)
+
+            FighterTwoDefense = randrange(FighterTwo.Data["Defense"]//4, FighterTwo.Data["Defense"]+1)
             FighterTwoDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
 
-            if FighterOneDamage - FighterTwoDefense < FighterOne.Data["Power"]: FighterOneDamage = FighterOne.Data["Power"]
+            if FighterOneDamage - FighterTwoDefense < FighterOne.Data["Power"]//4: FighterOneDamage = FighterOne.Data["Power"]//4
             else: FighterOneDamage -= FighterTwoDefense
 
             FighterTwo.Data["Health"] -= FighterOneDamage
@@ -212,7 +215,7 @@ class Arena:
             else:
                 BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['Target'].Data['Nick']} versus {Challenge.Data['Challenger'].Data['Nick']} ⚔️")
                 
-            DamageDescription += f"{FighterOne.Data['Name']} {FighterOneAttackMove} and dealt {FighterOneDamage}\n\n"
+            DamageDescription += f"{FighterOne.Data['Name']} rolled {FighterOneRoll}, and {FighterOneAttackMove} dealing {FighterOneDamage}\n\n"
             DamageDescription += f"{FighterTwo.Data['Name']} defended {FighterTwoDefensiveMove} and blocked {FighterTwoDefense} damage\n\n"
 
             TargetDescription += f"{FighterOne.Data['Name']}\n"
@@ -255,9 +258,11 @@ class Arena:
             else:
                 BattleEmbed = Embed(title=f"⚔️ {Challenge.Data['Target'].Data['Nick']} versus {Challenge.Data['Challenger'].Data['Nick']} ⚔️")
 
-            FighterTwoDamage = randrange(FighterTwo.Data["Power"]//4, FighterTwo.Data["Power"]+1)
+            FighterTwoRoll = randrange(FighterTwo.Data["Power"]//4, FighterTwo.Data["Power"]+1)
+            FighterTwoDamage = FighterTwoRoll
             FighterTwoAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
-            FighterOneDefense = randrange(FighterTwo.Data["Power"]//4, FighterOne.Data["Defense"]+1) 
+
+            FighterOneDefense = randrange(FighterOne.Data["Defense"]//4, FighterOne.Data["Defense"]+1) 
             FighterOneDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
 
             if FighterTwoDamage - FighterOneDefense < FighterTwo.Data["Power"]//4: FighterTwoDamage = FighterTwo.Data["Power"]//4
@@ -266,7 +271,7 @@ class Arena:
             FighterOne.Data["Health"] -= FighterTwoDamage
             if FighterOne.Data["Health"] <= 0: break
 
-            DamageDescription += f"{FighterTwo.Data['Name']} {FighterTwoAttackMove} and dealt {FighterTwoDamage}\n\n"
+            DamageDescription += f"{FighterTwo.Data['Name']} rolled {FighterTwoRoll}, and {FighterTwoAttackMove} dealing {FighterTwoDamage}\n\n"
             DamageDescription += f"{FighterOne.Data['Name']} defended {FighterOneDefensiveMove} and blocked {FighterOneDefense} damage\n"
 
             TargetDescription += f"{FighterOne.Data['Name']}\n"

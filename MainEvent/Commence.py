@@ -95,7 +95,7 @@ async def on_ready() -> None:
     Message = f"{ME.Bot.user} has connected to Discord!"
     print(Message)
     ME.MainEventLogger.log(20, Message)
-    await ME.Bot.change_presence(activity=Game('$me'))
+    await ME.Bot.change_presence(activity=Game('.me'))
 
 
     if ME.Bot.guilds[0].id == 1127838810097594438: # Dev
