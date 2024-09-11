@@ -9,6 +9,7 @@ class Launcher:
     def __init__(Self):
         Self.Key = None
         Self.Bot = None
+        Self.Alive = True
         Self.CommandDictionary = {"start": Self.Start,
                                   "restart": Self.Restart,
                                   "exit": Self.Exit,
@@ -53,7 +54,7 @@ class Launcher:
 
 
     def User_Input(Self):
-        while True:
+        while Self.Alive:
             AdminInput = input()
             print("Input command: ", AdminInput)
             try:
@@ -76,14 +77,14 @@ class Launcher:
             print("There isn't a running bot")
 
     def Exit(Self):
-        if Self.Bot is not None:
-            exit()
+        if Self.Bot is None:
+            Self.Alive = False
         else:
             print("There is a running bot")
 
 
     def Stop(Self):
-        if Self.Bot is not None:
+        if Self.Bot is None:
             print("Discord bot stopped")
             Self.Bot = Self.Bot.kill()
         else:
@@ -93,7 +94,7 @@ class Launcher:
     def Emergency_Stop(Self):
         if Self.Bot is None:
             print("Bot is not running it seems, stopping altogether though.")
-            exit()
+            Self.Alive = False
         else:
             print("Discord bot stopped")
             Self.Bot = Self.Bot.kill()

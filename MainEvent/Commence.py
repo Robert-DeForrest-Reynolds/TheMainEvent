@@ -1,3 +1,5 @@
+from timeit import timeit
+from time import perf_counter
 from discord import Intents, Game
 from logging import getLogger, Formatter,  DEBUG, INFO, Logger
 from logging.handlers import RotatingFileHandler
@@ -74,8 +76,12 @@ class MainEvent:
         Mapping[Selection](User, Interaction, Self)
 
 
+Initalization = perf_counter()
 global ME
 ME:MainEvent = MainEvent()
+FinishedInitializing = perf_counter()
+
+print(f"Initialized at {Initalization}, and finished at {FinishedInitializing}")
 
 
 # This initial player load will take all of the server members, and turn them into players
@@ -92,6 +98,7 @@ def Load_All_Challenges():
 
 @ME.Bot.event
 async def on_ready() -> None:
+    Initalization = perf_counter()
     Message = f"{ME.Bot.user} has connected to Discord!"
     print(Message)
     ME.MainEventLogger.log(20, Message)
@@ -115,13 +122,18 @@ async def on_ready() -> None:
     Load_All_Challenges()
 
     ME.MainEventLogger.log(20, ME.Players)
+    FinishedInitializing = perf_counter()
+    print(f"Initialized on_ready() at {Initalization}, and finished at {FinishedInitializing}")
 
 
 @ME.Bot.command(aliases=["me"])
 async def Main_Event(InitialContext:Context) -> None:
+    Initalization = perf_counter()
     if InitialContext.guild.id not in ME.ProtectedGuildIDs or InitialContext.channel not in ME.Channels.values(): return
     User = InitialContext.message.author
     Activities(User, InitialContext, ME)
+    FinishedInitializing = perf_counter()
+    print(f"Initialized PanelCommand at {Initalization}, and finished at {FinishedInitializing}")
 
 
 ME.Bot.run(ME.Token)

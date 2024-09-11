@@ -1,3 +1,3 @@
 if __name__ == '__main__':
-    from Self import Launcher
-    Launcher()
+    from timeit import timeit
+    print(timeit('Launcher().__init__', setup='from Self import Launcher', number=1))
