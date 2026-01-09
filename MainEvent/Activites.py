@@ -12,7 +12,7 @@ class Activities():
         Self.User:Member = User
         Self.Player:Player = Self.ME.Players[Self.User.name]
         Message = f"{Self.Player.Data["Nick"]} called for a panel"
-        print(Message)
+        
         Self.ME.MainEventLogger.log(20, Message)
 
         MEView = View(timeout=144000)

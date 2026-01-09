@@ -48,7 +48,7 @@ class MainEvent:
 
         Self.ProtectedGuildIDs = [
             1127838810097594438, # DeForrest Studios
-            1219494686369255444, # Odysseus Strike Force
+            1457557663562072138, # CounterForce Casino
         ]
 
         # Logging
@@ -98,22 +98,22 @@ def Load_All_Challenges():
 
 @ME.Bot.event
 async def on_ready() -> None:
-    Initalization = perf_counter()
     Message = f"{ME.Bot.user} has connected to Discord!"
     print(Message)
     ME.MainEventLogger.log(20, Message)
     await ME.Bot.change_presence(activity=Game('.me'))
 
-
+    print(ME.Bot.guilds)
     if ME.Bot.guilds[0].id == 1127838810097594438: # Dev
         ME.DataPath = "DevData"
         ME.Channels.update({"Lounge":ME.Bot.get_channel(1255299478408265808),
                             "Arena":ME.Bot.get_channel(1255299515297169428), 
                             "TrainingGrounds": ME.Bot.get_channel(1255663997718368256)})
-    elif ME.Bot.guilds[0].id == 1219494686369255444: # Official
+    elif ME.Bot.guilds[0].id == 1457557663562072138: # Official
+        print("Loading official data path")
         ME.DataPath = "Data"
-        ME.Channels.update({"Lounge":ME.Bot.get_channel(1255673883554484428),
-                            "Arena":ME.Bot.get_channel(1255673917545386014), 
+        ME.Channels.update({"Lounge":ME.Bot.get_channel(1459082586143068202),
+                            "Arena":ME.Bot.get_channel(1459082754754084897), 
                             "TrainingGrounds": ME.Bot.get_channel(1255673944111976509),
                             "HorseRacing": ME.Bot.get_channel(1255673942505689188)})
 
@@ -122,18 +122,13 @@ async def on_ready() -> None:
     Load_All_Challenges()
 
     ME.MainEventLogger.log(20, ME.Players)
-    FinishedInitializing = perf_counter()
-    print(f"Initialized on_ready() at {Initalization}, and finished at {FinishedInitializing}")
 
 
 @ME.Bot.command(aliases=["me"])
 async def Main_Event(InitialContext:Context) -> None:
-    Initalization = perf_counter()
     if InitialContext.guild.id not in ME.ProtectedGuildIDs or InitialContext.channel not in ME.Channels.values(): return
     User = InitialContext.message.author
     Activities(User, InitialContext, ME)
-    FinishedInitializing = perf_counter()
-    print(f"Initialized PanelCommand at {Initalization}, and finished at {FinishedInitializing}")
 
 
 ME.Bot.run(ME.Token)

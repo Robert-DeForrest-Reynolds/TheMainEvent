@@ -3,3 +3,5 @@ Keys.txt
 Data/
 MainEventOld.py
 *.log
+__pycache__
+*.pyc
