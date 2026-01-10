@@ -7,10 +7,8 @@ from discord import Interaction, Member
 from discord.ext.commands import Bot, Context
 from sys import argv
 from os.path import join
-from Player import Player
-from Arena import Arena
-from HorseRacing import HorseRacing
-from Activites import Activities
+from Dashboard import Dashboard
+from sys import argv
 
 
 class MainEvent:
@@ -26,8 +24,20 @@ class MainEvent:
         getLogger('discord.http').setLevel(INFO)
         Self.Channels = {}
         Self.Players = {}
+        Self.Weapons = []
         Self.AttackMoves = []
         Self.DefensiveMoves = []
+        Self.KeySelection = argv[2]
+
+        Self.Admins = [
+            713798389908897822, # Zach
+            897410636819083304, # Cavan
+        ]
+
+        with open(join("MainEvent", "Weapons.txt"), 'r') as File:
+            Lines = File.readlines()
+            for Line in Lines:
+                Self.Weapons.append(Line.strip())
 
         with open(join("MainEvent", "Attack_Moves.txt"), 'r') as File:
             Lines = File.readlines()
@@ -39,15 +49,9 @@ class MainEvent:
             for Line in Lines:
                 Self.DefensiveMoves.append(Line.strip())
 
-        Self.ActivitiesList = [
-            "Arena",
-            "Horse Racing",
-        ]
-
         Self.AllChallenges = {}
 
         Self.ProtectedGuildIDs = [
-            1127838810097594438, # DeForrest Studios
             1457557663562072138, # CounterForce Casino
         ]
 
@@ -65,17 +69,6 @@ class MainEvent:
         Self.MainEventLogger.info("Logger is setup")
 
 
-    async def Select_Activity(Self, User:Member, Interaction:Interaction, Selection:str) -> None:
-        if Interaction.user != User: return
-        
-        Mapping = {
-            "Arena":Arena,
-            "Horse Racing":HorseRacing,
-        }
-
-        Mapping[Selection](User, Interaction, Self)
-
-
 Initalization = perf_counter()
 global ME
 ME:MainEvent = MainEvent()
@@ -84,42 +77,25 @@ FinishedInitializing = perf_counter()
 print(f"Initialized at {Initalization}, and finished at {FinishedInitializing}")
 
 
-# This initial player load will take all of the server members, and turn them into players
-def Populate_Players():
-    for Member in ME.Bot.get_all_members():
-        ME.Players.update({Member.name:Player(Member, ME)})
-
-
-# This load will load all of the saved challenges
-def Load_All_Challenges():
-    for MEPlayer in ME.Players.values():
-        MEPlayer.Load_Challenges()
-
 
 @ME.Bot.event
 async def on_ready() -> None:
     Message = f"{ME.Bot.user} has connected to Discord!"
-    print(Message)
     ME.MainEventLogger.log(20, Message)
     await ME.Bot.change_presence(activity=Game('.me'))
 
-    print(ME.Bot.guilds)
-    if ME.Bot.guilds[0].id == 1127838810097594438: # Dev
+    
+    if ME.KeySelection == "test": # Dev
         ME.DataPath = "DevData"
-        ME.Channels.update({"Lounge":ME.Bot.get_channel(1255299478408265808),
-                            "Arena":ME.Bot.get_channel(1255299515297169428), 
-                            "TrainingGrounds": ME.Bot.get_channel(1255663997718368256)})
-    elif ME.Bot.guilds[0].id == 1457557663562072138: # Official
+        ME.Channels.update({"Lounge":ME.Bot.get_channel(1459244861835186247),
+                            "Arena":ME.Bot.get_channel(1459244861835186247), 
+                            "HorseRacing": ME.Bot.get_channel(1459244861835186247)})
+    elif ME.KeySelection == "official": # Official
         print("Loading official data path")
         ME.DataPath = "Data"
         ME.Channels.update({"Lounge":ME.Bot.get_channel(1459082586143068202),
-                            "Arena":ME.Bot.get_channel(1459082754754084897), 
-                            "TrainingGrounds": ME.Bot.get_channel(1255673944111976509),
+                            "Arena":ME.Bot.get_channel(1459082754754084897),
                             "HorseRacing": ME.Bot.get_channel(1255673942505689188)})
-
-    Populate_Players()
-
-    Load_All_Challenges()
 
     ME.MainEventLogger.log(20, ME.Players)
 
@@ -128,7 +104,7 @@ async def on_ready() -> None:
 async def Main_Event(InitialContext:Context) -> None:
     if InitialContext.guild.id not in ME.ProtectedGuildIDs or InitialContext.channel not in ME.Channels.values(): return
     User = InitialContext.message.author
-    Activities(User, InitialContext, ME)
+    Dashboard(User, InitialContext, ME)
 
 
 ME.Bot.run(ME.Token)

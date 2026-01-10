@@ -24,7 +24,7 @@ class Launcher:
 
         Self.VirtualEnvironmentPath = join(".venv","Scripts","python")
 
-        Self.CallCommand = f"{Self.VirtualEnvironmentPath} -B {join(Self.ProjectFilePath)} {Self.Keys[Self.KeySelection]}"
+        Self.CallCommand = f"{Self.VirtualEnvironmentPath} -B {join(Self.ProjectFilePath)} {Self.Keys[Self.KeySelection]} {Self.KeySelection}"
 
         Self.User_Input()
 
@@ -68,7 +68,7 @@ class Launcher:
 
 
     def Restart(Self):
-        if Self.Bot is not None:
+        if Self.Bot:
             print("Discord bot stopped")
             Self.Bot.kill()
             Self.Bot = Popen(Self.CallCommand)
@@ -77,14 +77,14 @@ class Launcher:
             print("There isn't a running bot")
 
     def Exit(Self):
-        if Self.Bot is None:
+        if Self.Bot:
             Self.Alive = False
         else:
             print("There is a running bot")
 
 
     def Stop(Self):
-        if Self.Bot is None:
+        if Self.Bot:
             print("Discord bot stopped")
             Self.Bot = Self.Bot.kill()
         else:
@@ -92,7 +92,7 @@ class Launcher:
 
 
     def Emergency_Stop(Self):
-        if Self.Bot is None:
+        if not Self.Bot:
             print("Bot is not running it seems, stopping altogether though.")
             Self.Alive = False
         else:

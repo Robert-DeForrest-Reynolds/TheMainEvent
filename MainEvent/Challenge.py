@@ -1,8 +1,6 @@
 class Challenge:
-    def __init__(Self, Challenger, ChallengerFighter, Target, TargetFighter, Exhibition=False):
+    def __init__(Self, ChallengerFighter, TargetFighter):
         Self.Data = {
-            "Challenger":Challenger,
             "ChallengerFighter":ChallengerFighter,
-            "Target": Target,
             "TargetFighter":TargetFighter,
         }
