@@ -58,6 +58,11 @@ class AdminPanel:
 				DiscordFile = File(DefensiveMovesFile, "DefensiveMoves.txt")
 
 		AdminEmbed.add_field(name="", value=AdminDescription)
+
+		DashboardButton = Button(label="Dashboard", style=ButtonStyle.blurple, row=4)
+		DashboardButton.callback = lambda Interaction: Self.ME.Dashboard(User, Interaction, Self.ME)
+		AdminView.add_item(DashboardButton)
+	
 		if DiscordFile:
 			await Interaction.response.edit_message(view=AdminView, embed=AdminEmbed, attachments=[DiscordFile])
 		else:

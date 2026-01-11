@@ -6,15 +6,13 @@ if TYPE_CHECKING:
 from discord import Embed, SelectOption, Interaction, Member
 from discord.ui import Button, Modal, Select, TextInput, View
 from asyncio import create_task, sleep
-from Arena import Arena
-from HorseRacing import HorseRacing
+from Pit import Pit
 from AdminPanel import AdminPanel
 
 class Dashboard:
     def __init__(Self, User, Interaction, MEReference:MainEventBot) -> None:
         Self.ME = MEReference
         Self.ActivitiesList = [
-            "Horse Racing",
         ]
         create_task(Self.Send_Activities_Panel(User, Interaction))
 
@@ -31,10 +29,10 @@ class Dashboard:
         Activities = [SelectOption(label=Activity) for Activity in Self.ActivitiesList]
         
         if User.id in Self.ME.Admins:
-            Activities.append(SelectOption(label="Arena"))
-            Activities.append(SelectOption(label="Admin Panel"))
+            Activities.append(SelectOption(label="⚔️ Pit ⚔️"))
+            Activities.append(SelectOption(label="⚙️ Admin Panel ⚙️"))
 
-        ActivityChoice = Select(placeholder="Select an Activity",
+        ActivityChoice = Select(placeholder="👣 Select an Activity 👣",
                                 options=Activities,
                                 row=2,
                                 custom_id=f"ActivityChoice")
@@ -50,9 +48,8 @@ class Dashboard:
         if Interaction.user != User: return
         
         Mapping = {
-            "Arena":Arena,
-            "Horse Racing":HorseRacing,
-            "Admin Panel":AdminPanel,
+            "⚔️ Pit ⚔️":Pit,
+            "⚙️ Admin Panel ⚙️":AdminPanel,
         }
 
         Activity = Mapping[Selection]

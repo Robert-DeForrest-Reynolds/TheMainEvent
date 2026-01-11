@@ -4,6 +4,7 @@ from discord import Interaction, Member, Intents
 from discord.ext.commands import Bot, Context
 from sys import argv
 from os.path import join
+from Dashboard import Dashboard
 
 
 class MainEventBot:
@@ -23,6 +24,7 @@ class MainEventBot:
         Self.AttackMoves = []
         Self.DefensiveMoves = []
         Self.KeySelection = argv[2]
+        Self.Dashboard = Dashboard
 
         Self.Admins = [
             713798389908897822, # Zach

@@ -3,26 +3,25 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from Commence import MainEventBot
 
-from discord import Embed, SelectOption, Interaction, Member
+from discord import Embed, SelectOption, Interaction, Member, ButtonStyle
 from discord import Message as DiscordMessage
 from discord.ui import Button, Modal, Select, TextInput, View
 from asyncio import create_task, sleep
-from Fighter import Fighter
-from Challenge import Challenge
+from Entities.Fighter import Fighter
 from random import randrange
 
-class Arena:
+class Pit:
     def __init__(Self, User, Interaction:Interaction, MEReference:MainEventBot) -> None:
         Self.ME = MEReference
         Self.Target = None
         Self.SelectedChallenge = None
         Self.EarlyStop = False
-        create_task(Self.Send_Panel(Interaction))
+        create_task(Self.Send_Panel(User, Interaction))
 
 
-    async def Send_Panel(Self, Interaction:Interaction, FighterOneData=None, FighterTwoData=None):
-        ArenaView = View(timeout=144000)
-        ArenaEmbed = Embed(title=f"Name your fighters!")
+    async def Send_Panel(Self, User, Interaction:Interaction, FighterOneData=None, FighterTwoData=None):
+        PitView = View(timeout=144000)
+        PitEmbed = Embed(title=f"Name your fighters!")
 
         if FighterOneData != None:
             FighterOneDesc = ""
@@ -30,7 +29,7 @@ class Arena:
             FighterOneDesc += f"💚 {FighterOneData[1]}\n"
             FighterOneDesc += f"💪 {FighterOneData[2]}\n"
             FighterOneDesc += f"🛡️ {FighterOneData[3]}\n"
-            ArenaEmbed.add_field(name="\u200b", value=FighterOneDesc)
+            PitEmbed.add_field(name="\u200b", value=FighterOneDesc)
         
         if FighterTwoData != None:
             Clash = "⚔️"
@@ -41,23 +40,27 @@ class Arena:
             FighterTwoDesc += f"💪{FighterTwoData[2]}\n"
             FighterTwoDesc += f"🛡️{FighterTwoData[3]}\n"
 
-            ArenaEmbed.add_field(name="\u200b", value=Clash)
-            ArenaEmbed.add_field(name="\u200b", value=FighterTwoDesc)
+            PitEmbed.add_field(name="\u200b", value=Clash)
+            PitEmbed.add_field(name="\u200b", value=FighterTwoDesc)
 
         AddFighterOneButton = Button(label="Add Fighter One", row=0)
         AddFighterOneButton.callback = lambda Interaction: Self.Get_First_Fighter_Modal(Interaction)
-        ArenaView.add_item(AddFighterOneButton)
+        PitView.add_item(AddFighterOneButton)
 
         AddFighterTwoButton = Button(label="Add Fighter Two", row=0)
         AddFighterTwoButton.callback = lambda Interaction: Self.Get_Second_Fighter_Modal(Interaction, FighterOneData)
-        ArenaView.add_item(AddFighterTwoButton)
+        PitView.add_item(AddFighterTwoButton)
 
         if FighterOneData != None and FighterTwoData != None:
             BattleButton = Button(label="Battle!", row=1)
             BattleButton.callback = lambda Interaction: Self.Create_Match(Interaction, FighterOneData, FighterTwoData)
-            ArenaView.add_item(BattleButton)
+            PitView.add_item(BattleButton)
+
+        DashboardButton = Button(label="Dashboard", style=ButtonStyle.blurple, row=4)
+        DashboardButton.callback = lambda Interaction: Self.ME.Dashboard(User, Interaction, Self.ME)
+        PitView.add_item(DashboardButton)
         
-        await Interaction.response.edit_message(view=ArenaView, embed=ArenaEmbed)
+        await Interaction.response.edit_message(view=PitView, embed=PitEmbed)
 
 
     async def Construct_Description(Self, BattleEmbed:Embed, FighterOne:Fighter, FighterTwo:Fighter):
@@ -80,16 +83,16 @@ class Arena:
         BattleEmbed.add_field(name="\u200b", value=FighterTwoDesc)
         
 
-    async def Battle(Self, Challenge:Challenge):
+    async def Battle(Self, ChallengerFighter, TargetFighter):
         BattleView = View(timeout=14400)
-        BattleEmbed = Embed(title=f"⚔️ {Challenge.ChallengerFighter.Data['Name']} versus {Challenge.TargetFighter.Data['Name']} ⚔️")
+        BattleEmbed = Embed(title=f"⚔️ {ChallengerFighter.Data['Name']} versus {TargetFighter.Data['Name']} ⚔️")
         
-        FighterOne:Fighter = Challenge.ChallengerFighter
-        FighterTwo:Fighter = Challenge.TargetFighter
+        FighterOne:Fighter = ChallengerFighter
+        FighterTwo:Fighter = TargetFighter
 
         await Self.Construct_Description(BattleEmbed, FighterOne, FighterTwo)
 
-        Message:DiscordMessage = await Self.ME.Channels["Arena"].send(view=BattleView, embed=BattleEmbed)
+        Message:DiscordMessage = await Self.ME.Channels["Pit"].send(view=BattleView, embed=BattleEmbed)
 
         while FighterOne.Data['Health'] > 0 or FighterTwo.Data['Health'] > 0:
             if Self.EarlyStop == True:
@@ -117,7 +120,7 @@ class Arena:
             DamageDesc += f"{FighterOne.Data['Name']} rolled {FighterOneRoll}, and {FighterOneAttackMove} {FighterTwo.Data['Name']} with {FighterTwoWeapon} dealing {FighterOneDamage}\n\n"
             DamageDesc += f"{FighterTwo.Data['Name']} defended {FighterTwoDefensiveMove} and blocked {FighterTwoDefense} damage\n\n"
 
-            BattleEmbed = Embed(title=f"⚔️ {Challenge.ChallengerFighter.Data['Name']} versus {Challenge.TargetFighter.Data['Name']} ⚔️")
+            BattleEmbed = Embed(title=f"⚔️ {ChallengerFighter.Data['Name']} versus {TargetFighter.Data['Name']} ⚔️")
             BattleEmbed.add_field(name="\u200b", value=DamageDesc, inline=False)
             await Self.Construct_Description(BattleEmbed, FighterOne, FighterTwo)
 
@@ -147,7 +150,7 @@ class Arena:
             DamageDesc += f"{FighterTwo.Data['Name']} rolled {FighterTwoRoll}, and {FighterTwoAttackMove} {FighterOne.Data['Name']} with {FighterTwoWeapon} dealing {FighterTwoDamage}\n\n"
             DamageDesc += f"{FighterOne.Data['Name']} defended {FighterOneDefensiveMove} and blocked {FighterOneDefense} damage\n"
 
-            BattleEmbed = Embed(title=f"⚔️ {Challenge.ChallengerFighter.Data['Name']} versus {Challenge.TargetFighter.Data['Name']} ⚔️")
+            BattleEmbed = Embed(title=f"⚔️ {ChallengerFighter.Data['Name']} versus {TargetFighter.Data['Name']} ⚔️")
             BattleEmbed.add_field(name="\u200b", value=DamageDesc, inline=False)
             await Self.Construct_Description(BattleEmbed, FighterOne, FighterTwo)
 
@@ -228,11 +231,7 @@ class Arena:
 
 
     async def Create_Match(Self, Interaction:Interaction, FighterOneData, FighterTwoData):
-        ArenaView = View(timeout=144000)
-        ArenaEmbed = Embed(title=f"Fight has begun in the Main-Event-Arena!")
-        FighterOne = Fighter(*FighterOneData)
-        FighterTwo = Fighter(*FighterTwoData)
-
-        ArenaChallenge = Challenge(FighterOne, FighterTwo)
-        await Interaction.response.edit_message(view=ArenaView, embed=ArenaEmbed)
-        await Self.Battle(ArenaChallenge)
+        PitView = View(timeout=144000)
+        PitEmbed = Embed(title=f"Fight has begun in the Main-Event-Pit!")
+        await Self.Battle(Fighter(*FighterOneData), Fighter(*FighterTwoData))
+        await Interaction.response.edit_message(view=PitView, embed=PitEmbed)

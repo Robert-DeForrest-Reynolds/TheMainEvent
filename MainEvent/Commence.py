@@ -18,12 +18,12 @@ async def on_ready() -> None:
     
     if MainEvent.KeySelection == "test": # Dev
         MainEvent.Channels.update({"Lounge":MainEvent.Bot.get_channel(1459244861835186247),
-                            "Arena":MainEvent.Bot.get_channel(1459244861835186247), 
-                            "HorseRacing": MainEvent.Bot.get_channel(1459244861835186247)})
+                                   "Arena":MainEvent.Bot.get_channel(1459244861835186247), 
+                                   "HorseRacing": MainEvent.Bot.get_channel(1459244861835186247)})
     elif MainEvent.KeySelection == "official": # Official
         MainEvent.Channels.update({"Lounge":MainEvent.Bot.get_channel(1459082586143068202),
-                            "Arena":MainEvent.Bot.get_channel(1459082754754084897),
-                            "HorseRacing": MainEvent.Bot.get_channel(1255673942505689188)})
+                                   "Arena":MainEvent.Bot.get_channel(1459082754754084897),
+                                   "HorseRacing": MainEvent.Bot.get_channel(1255673942505689188)})
 
     MainEvent.Logger.log(20, MainEvent.Players)
 
