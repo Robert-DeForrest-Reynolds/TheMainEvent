@@ -1,14 +1,14 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-	from Commence import MainEvent
+	from Commence import MainEventBot
 
 from asyncio import create_task
 from discord import Embed, SelectOption, Interaction, Member, ButtonStyle
 from discord.ui import View, Button, Modal, Select, TextInput
 
 class AdminPanel:
-	def __init__(Self, User, Interaction, MEReference:MainEvent) -> None:
+	def __init__(Self, User, Interaction, MEReference:MainEventBot) -> None:
 		Self.ME = MEReference
 		create_task(Self.Send_Admin_Panel(User, Interaction))
 		

@@ -1,8 +1,8 @@
 class Fighter:
-    def __init__(Self, Name) -> None:
+    def __init__(Self, Name, Health, Power, Defense) -> None:
         Self.Data = {
             "Name":Name,
-            "Health": 150,
-            "Power": 25,
-            "Defense": 20,
+            "Health": int(Health),
+            "Power": int(Power),
+            "Defense": int(Defense),
         }

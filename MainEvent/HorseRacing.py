@@ -1,9 +1,14 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from Commence import MainEventBot
+
 from discord import Embed, SelectOption, Interaction, Member
 from discord.ui import Button, Modal, Select, TextInput, View
 from asyncio import create_task, sleep
 
 class HorseRacing:
-    def __init__(Self, User, Interaction, MEReference) -> None:
+    def __init__(Self, User, Interaction, MEReference:MainEventBot) -> None:
         Self.ME = MEReference
         create_task(Self.Send_Horse_Racing_Panel(User, Interaction))
     
@@ -11,8 +16,7 @@ class HorseRacing:
         Self.User:Member = User
 
         Message = f"{Self.User.name} called for an Horse Racing Panel"
-        print(Message)
-        Self.ME.MainEventLogger.log(20, Message)
+        Self.ME.Logger.log(20, Message)
 
         HorseRacingView = View(timeout=144000)
         HorseRacingEmbed = Embed(title=f"Welcome, {Self.User.name}, to Valor Heights Horse Arena!")
