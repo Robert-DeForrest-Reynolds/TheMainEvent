@@ -4,6 +4,7 @@ if TYPE_CHECKING:
     from Commence import MainEventBot
 
 from discord import Embed, SelectOption, Interaction, Member
+from discord import Message as DiscordMessage
 from discord.ui import Button, Modal, Select, TextInput, View
 from asyncio import create_task, sleep
 from Fighter import Fighter
@@ -13,11 +14,7 @@ from random import randrange
 class Arena:
     def __init__(Self, User, Interaction:Interaction, MEReference:MainEventBot) -> None:
         Self.ME = MEReference
-        Self.SelectedFighter = None
-        Self.SelectedOpponentFighter = None
         Self.Target = None
-        Self.InsufficientFunds = False
-        Self.MaximumFighters = False
         Self.SelectedChallenge = None
         Self.EarlyStop = False
         create_task(Self.Send_Panel(Interaction))
@@ -63,14 +60,8 @@ class Arena:
         await Interaction.response.edit_message(view=ArenaView, embed=ArenaEmbed)
 
 
-    async def Battle(Self, Challenge:Challenge):
-        BattleView = View(timeout=14400)
-        BattleEmbed = Embed(title=f"⚔️ {Challenge.ChallengerFighter.Data['Name']} versus {Challenge.TargetFighter.Data['Name']} ⚔️")
+    async def Construct_Description(Self, BattleEmbed:Embed, FighterOne:Fighter, FighterTwo:Fighter):
         FighterOneDesc = ""
-        
-        FighterOne = Challenge.ChallengerFighter
-        FighterTwo = Challenge.TargetFighter
-
         FighterOneDesc += f"{FighterOne.Data['Name']}\n"
         FighterOneDesc += f"💚{FighterOne.Data['Health']}\n"
         FighterOneDesc += f"💪{FighterOne.Data['Power']}\n"
@@ -83,25 +74,30 @@ class Arena:
         FighterTwoDesc += f"💚{FighterTwo.Data['Health']}\n"
         FighterTwoDesc += f"💪{FighterTwo.Data['Power']}\n"
         FighterTwoDesc += f"🛡️{FighterTwo.Data['Defense']}\n"
-
+            
         BattleEmbed.add_field(name="\u200b", value=FighterOneDesc)
         BattleEmbed.add_field(name="\u200b", value=Clash)
         BattleEmbed.add_field(name="\u200b", value=FighterTwoDesc)
+        
 
-        Message = await Self.ME.Channels["Arena"].send(view=BattleView, embed=BattleEmbed)
+    async def Battle(Self, Challenge:Challenge):
+        BattleView = View(timeout=14400)
+        BattleEmbed = Embed(title=f"⚔️ {Challenge.ChallengerFighter.Data['Name']} versus {Challenge.TargetFighter.Data['Name']} ⚔️")
+        
+        FighterOne:Fighter = Challenge.ChallengerFighter
+        FighterTwo:Fighter = Challenge.TargetFighter
+
+        await Self.Construct_Description(BattleEmbed, FighterOne, FighterTwo)
+
+        Message:DiscordMessage = await Self.ME.Channels["Arena"].send(view=BattleView, embed=BattleEmbed)
 
         while FighterOne.Data['Health'] > 0 or FighterTwo.Data['Health'] > 0:
             if Self.EarlyStop == True:
                 print("Battle Stopped")
                 return
-            # Initial 4 second wait
-            await sleep(4)
-
+            # Initial 5 second wait
+            await sleep(5)
             # Fighter one attacks
-            FighterOneDesc = ""
-            FighterTwoDesc = ""
-            DamageDesc = ""
-
             FighterOneRoll = randrange(FighterOne.Data["Power"]//4, FighterOne.Data["Power"]+1)
             FighterOneDamage = FighterOneRoll
 
@@ -115,44 +111,23 @@ class Arena:
             else: FighterOneDamage -= FighterTwoDefense
 
             FighterTwo.Data["Health"] -= FighterOneDamage
-            if FighterTwo.Data["Health"] <= 0: break
-            
-            BattleEmbed = Embed(title=f"⚔️ {Challenge.ChallengerFighter.Data['Name']} versus {Challenge.TargetFighter.Data['Name']} ⚔️")
-                
+            if FighterTwo.Data["Health"] <= 0: break # Stop loop if FighterTwo has zero health
+
+            DamageDesc = ""
             DamageDesc += f"{FighterOne.Data['Name']} rolled {FighterOneRoll}, and {FighterOneAttackMove} {FighterTwo.Data['Name']} with {FighterTwoWeapon} dealing {FighterOneDamage}\n\n"
             DamageDesc += f"{FighterTwo.Data['Name']} defended {FighterTwoDefensiveMove} and blocked {FighterTwoDefense} damage\n\n"
 
-            FighterOneDesc += f"{FighterOne.Data['Name']}\n"
-            FighterOneDesc += f"💚{FighterOne.Data['Health']}\n"
-            FighterOneDesc += f"💪{FighterOne.Data['Power']}\n"
-            FighterOneDesc += f"🛡️{FighterOne.Data['Defense']}\n"
-            
-            Clash = "⚔️"
-
-            FighterTwoDesc = ""
-            FighterTwoDesc += f"{FighterTwo.Data['Name']}\n"
-            FighterTwoDesc += f"💚{FighterTwo.Data['Health']}\n"
-            FighterTwoDesc += f"💪{FighterTwo.Data['Power']}\n"
-            FighterTwoDesc += f"🛡️{FighterTwo.Data['Defense']}\n"
-            
+            BattleEmbed = Embed(title=f"⚔️ {Challenge.ChallengerFighter.Data['Name']} versus {Challenge.TargetFighter.Data['Name']} ⚔️")
             BattleEmbed.add_field(name="\u200b", value=DamageDesc, inline=False)
-            BattleEmbed.add_field(name="\u200b", value=FighterOneDesc)
-            BattleEmbed.add_field(name="\u200b", value=Clash)
-            BattleEmbed.add_field(name="\u200b", value=FighterTwoDesc)
+            await Self.Construct_Description(BattleEmbed, FighterOne, FighterTwo)
 
             if Self.EarlyStop != True:
                 await Message.edit(embed=BattleEmbed)
 
             # Wait 4 seconds
-            await sleep(4)
+            await sleep(5)
 
             ## Now fighter two attacks
-            FighterOneDesc = ""
-            FighterTwoDesc = ""
-            DamageDesc = ""
-
-            BattleEmbed = Embed(title=f"⚔️ {Challenge.ChallengerFighter.Data['Name']} versus {Challenge.TargetFighter.Data['Name']} ⚔️")
-
             FighterTwoRoll = randrange(FighterTwo.Data["Power"]//4, FighterTwo.Data["Power"]+1)
             FighterTwoDamage = FighterTwoRoll
 
@@ -160,7 +135,6 @@ class Arena:
             FighterTwoAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
 
             FighterOneDefense = randrange(FighterOne.Data["Defense"]//4, FighterOne.Data["Defense"]+1)
-
             FighterOneDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
 
             if FighterTwoDamage - FighterOneDefense < FighterTwo.Data["Power"]//4: FighterTwoDamage = FighterTwo.Data["Power"]//4
@@ -169,26 +143,13 @@ class Arena:
             FighterOne.Data["Health"] -= FighterTwoDamage
             if FighterOne.Data["Health"] <= 0: break
 
+            DamageDesc = ""
             DamageDesc += f"{FighterTwo.Data['Name']} rolled {FighterTwoRoll}, and {FighterTwoAttackMove} {FighterOne.Data['Name']} with {FighterTwoWeapon} dealing {FighterTwoDamage}\n\n"
             DamageDesc += f"{FighterOne.Data['Name']} defended {FighterOneDefensiveMove} and blocked {FighterOneDefense} damage\n"
 
-            FighterOneDesc += f"{FighterOne.Data['Name']}\n"
-            FighterOneDesc += f"💚{FighterOne.Data['Health']}\n"
-            FighterOneDesc += f"💪{FighterOne.Data['Power']}\n"
-            FighterOneDesc += f"🛡️{FighterOne.Data['Defense']}\n"
-            
-            Clash = "⚔️"
-
-            FighterTwoDesc += f"{FighterTwo.Data['Name']}\n"
-            FighterTwoDesc += f"💚{FighterTwo.Data['Health']}\n"
-            FighterTwoDesc += f"💪{FighterTwo.Data['Power']}\n"
-            FighterTwoDesc += f"🛡️{FighterTwo.Data['Defense']}\n"
-
-
+            BattleEmbed = Embed(title=f"⚔️ {Challenge.ChallengerFighter.Data['Name']} versus {Challenge.TargetFighter.Data['Name']} ⚔️")
             BattleEmbed.add_field(name="\u200b", value=DamageDesc, inline=False)
-            BattleEmbed.add_field(name="\u200b", value=FighterOneDesc)
-            BattleEmbed.add_field(name="\u200b", value=Clash)
-            BattleEmbed.add_field(name="\u200b", value=FighterTwoDesc)
+            await Self.Construct_Description(BattleEmbed, FighterOne, FighterTwo)
 
             if Self.EarlyStop != True:
                 await Message.edit(embed=BattleEmbed)
@@ -226,10 +187,10 @@ class Arena:
     async def Get_First_Fighter_Modal(Self, Interaction:Interaction):
         FirstFighterModal = Modal(title="Who is the fighter one?", custom_id="FirstFighterModal")
         FirstFighterModal.on_submit = lambda Interaction: Self.Send_Panel(Interaction,
-                                                                                [FighterOneName,
-                                                                                FighterOneHealth.value,
-                                                                                FighterOnePower.value,
-                                                                                FighterOneDefense.value])
+                                                                          [FighterOneName,
+                                                                          FighterOneHealth.value,
+                                                                          FighterOnePower.value,
+                                                                          FighterOneDefense.value])
 
         FighterOneName = TextInput(label="Enter First Fighter's Name")
         FighterOneHealth = TextInput(label="Enter First Fighter's Health")
@@ -247,11 +208,11 @@ class Arena:
     async def Get_Second_Fighter_Modal(Self, Interaction:Interaction, FighterOneData):
         SecondFighterModal = Modal(title="Who is fighter two?", custom_id="SecondFighterModal")
         SecondFighterModal.on_submit = lambda Interaction: Self.Send_Panel(Interaction,
-                                                                                 FighterOneData,
-                                                                                 [FighterTwoName,
-                                                                                 FighterTwoHealth.value,
-                                                                                 FighterTwoPower.value,
-                                                                                 FighterTwoDefense.value])
+                                                                           FighterOneData,
+                                                                           [FighterTwoName,
+                                                                           FighterTwoHealth.value,
+                                                                           FighterTwoPower.value,
+                                                                           FighterTwoDefense.value])
 
         FighterTwoName = TextInput(label="Enter Second Fighter's Name")
         FighterTwoHealth = TextInput(label="Enter Second Fighter's Health")
