@@ -54,8 +54,8 @@ class AdminPanel:
 			with open(join("MainEvent", "Data", "AttackMoves.txt"), "rb") as AttackMovesFile:
 				DiscordFile = File(AttackMovesFile, "AttackMoves.txt")
 		elif InfoType == "Defensive Moves":
-			with open(join("MainEvent", "Data", "AttackMoves.txt"), "rb") as DefensiveMovesFile:
-				DiscordFile = File(DefensiveMovesFile, "AttackMoves.txt")
+			with open(join("MainEvent", "Data", "DefensiveMoves.txt"), "rb") as DefensiveMovesFile:
+				DiscordFile = File(DefensiveMovesFile, "DefensiveMoves.txt")
 
 		AdminEmbed.add_field(name="", value=AdminDescription)
 		if DiscordFile:
