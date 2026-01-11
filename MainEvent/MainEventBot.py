@@ -34,12 +34,12 @@ class MainEventBot:
             for Line in Lines:
                 Self.Weapons.append(Line.strip())
 
-        with open(join("MainEvent", "Data", "Attack_Moves.txt"), 'r') as File:
+        with open(join("MainEvent", "Data", "AttackMoves.txt"), 'r') as File:
             Lines = File.readlines()
             for Line in Lines:
                 Self.AttackMoves.append(Line.strip())
 
-        with open(join("MainEvent", "Data", "Defence_Moves.txt"), 'r') as File:
+        with open(join("MainEvent", "Data", "DefenceMoves.txt"), 'r') as File:
             Lines = File.readlines()
             for Line in Lines:
                 Self.DefensiveMoves.append(Line.strip())

@@ -4,8 +4,9 @@ if TYPE_CHECKING:
 	from Commence import MainEventBot
 
 from asyncio import create_task
-from discord import Embed, SelectOption, Interaction, Member, ButtonStyle
+from discord import Embed, SelectOption, Interaction, Member, ButtonStyle, File
 from discord.ui import View, Button, Modal, Select, TextInput
+from os.path import join
 
 class AdminPanel:
 	def __init__(Self, User, Interaction, MEReference:MainEventBot) -> None:
@@ -17,7 +18,7 @@ class AdminPanel:
 		Self.User:Member = User
 		LogMessage = f"{Self.User.name} called for an admin panel"
 		
-		Self.ME.MainEventLogger.log(20, LogMessage)
+		Self.ME.Logger.log(20, LogMessage)
 
 		AdminView = View(timeout=144000)
 		AdminEmbed = Embed(title=f"Welcome, {Self.User.name}, to the Admin Panel")
@@ -45,22 +46,22 @@ class AdminPanel:
 		DisplayDefensiveMoves.callback = lambda Interaction: create_task(Self.Send_Delete_Entry_Modal(User, Interaction))
 		AdminView.add_item(DisplayDefensiveMoves)
 		
+		DiscordFile = None
 		if InfoType == "Weapons":
-			AdminDescription += "Displaying weapons:\n\n"
-			for Weapon in Self.ME.Weapons:
-				AdminDescription += f"{Weapon}\n"
+			with open(join("MainEvent", "Data", "Weapons.txt"), "rb") as WeaponsFile:
+				DiscordFile = File(WeaponsFile, "Weapons.txt")
 		elif InfoType == "Attack Moves":
-			AdminDescription += "Displaying attack moves:\n\n"
-			for Move in Self.ME.AttackMoves:
-				AdminDescription += f"{Move}\n"
+			with open(join("MainEvent", "Data", "AttackMoves.txt"), "rb") as AttackMovesFile:
+				DiscordFile = File(AttackMovesFile, "AttackMoves.txt")
 		elif InfoType == "Defensive Moves":
-			AdminDescription += "Displaying defensive moves:\n\n"
-			for Move in Self.ME.DefensiveMoves:
-				AdminDescription += f"{Move}\n"
+			with open(join("MainEvent", "Data", "AttackMoves.txt"), "rb") as DefensiveMovesFile:
+				DiscordFile = File(DefensiveMovesFile, "AttackMoves.txt")
 
 		AdminEmbed.add_field(name="", value=AdminDescription)
-		
-		await Interaction.response.edit_message(view=AdminView, embed=AdminEmbed)
+		if DiscordFile:
+			await Interaction.response.edit_message(view=AdminView, embed=AdminEmbed, attachments=[DiscordFile])
+		else:
+			await Interaction.response.edit_message(view=AdminView, embed=AdminEmbed)
 
 
 	async def Send_Add_Entry_Modal(Self, User, Interaction):
@@ -105,6 +106,11 @@ class AdminPanel:
 			"a":"attack moves",
 			"d":"defensive moves",
 		}
+		FileMapping = {
+			"w":"Weapons",
+			"a":"AttackMoves",
+			"d":"DefensiveMoves",
+		}
 
 		if Query not in Mapping[EntryType]:
 			Mapping[EntryType].append(Query)
@@ -114,6 +120,8 @@ class AdminPanel:
 		if Failed:
 			await Self.Send_Admin_Panel(User, Interaction, Message=f"Failed to add {Query} in {NameMapping[EntryType]}, I dunno why, is it already in it?")
 		else:
+			with open(join("MainEvent", "Data", f"{FileMapping[EntryType]}.txt"), 'w+') as File:
+				File.write(f"\n".join(Mapping[EntryType]))
 			await Self.Send_Admin_Panel(User, Interaction, Message=f"Added {Query}")
 
 
@@ -129,6 +137,11 @@ class AdminPanel:
 			"a":"attack moves",
 			"d":"defensive moves",
 		}
+		FileMapping = {
+			"w":"Weapons",
+			"a":"AttackMoves",
+			"d":"DefensiveMoves",
+		}
 
 		if Query in Mapping[EntryType]:
 			Mapping[EntryType].remove(Query)
@@ -138,4 +151,6 @@ class AdminPanel:
 		if Failed:
 			await Self.Send_Admin_Panel(User, Interaction, Message=f"Failed to delete {Query} in {NameMapping[EntryType]}, couldn't find it.")
 		else:
+			with open(join("MainEvent", "Data", f"{FileMapping[EntryType]}.txt"), 'w+') as File:
+				File.write(f"\n".join(Mapping[EntryType]))
 			await Self.Send_Admin_Panel(User, Interaction, Message=f"Deleted {Query}")
