@@ -1,6 +1,6 @@
 Keys.txt
 .venv/
-Data/
+PlayerData/
 MainEventOld.py
 *.log
 __pycache__
