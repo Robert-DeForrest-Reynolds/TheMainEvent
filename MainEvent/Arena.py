@@ -119,7 +119,7 @@ class Arena:
             
             BattleEmbed = Embed(title=f"⚔️ {Challenge.ChallengerFighter.Data['Name']} versus {Challenge.TargetFighter.Data['Name']} ⚔️")
                 
-            DamageDesc += f"{FighterOne.Data['Name']} rolled {FighterOneRoll}, and {FighterOneAttackMove} with {FighterTwoWeapon} dealing {FighterOneDamage}\n\n"
+            DamageDesc += f"{FighterOne.Data['Name']} rolled {FighterOneRoll}, and {FighterOneAttackMove} {FighterTwo.Data['Name']} with {FighterTwoWeapon} dealing {FighterOneDamage}\n\n"
             DamageDesc += f"{FighterTwo.Data['Name']} defended {FighterTwoDefensiveMove} and blocked {FighterTwoDefense} damage\n\n"
 
             FighterOneDesc += f"{FighterOne.Data['Name']}\n"
@@ -169,7 +169,7 @@ class Arena:
             FighterOne.Data["Health"] -= FighterTwoDamage
             if FighterOne.Data["Health"] <= 0: break
 
-            DamageDesc += f"{FighterTwo.Data['Name']} rolled {FighterTwoRoll}, and {FighterTwoAttackMove} with {FighterTwoWeapon} dealing {FighterTwoDamage}\n\n"
+            DamageDesc += f"{FighterTwo.Data['Name']} rolled {FighterTwoRoll}, and {FighterTwoAttackMove} {FighterOne.Data['Name']} with {FighterTwoWeapon} dealing {FighterTwoDamage}\n\n"
             DamageDesc += f"{FighterOne.Data['Name']} defended {FighterOneDefensiveMove} and blocked {FighterOneDefense} damage\n"
 
             FighterOneDesc += f"{FighterOne.Data['Name']}\n"
