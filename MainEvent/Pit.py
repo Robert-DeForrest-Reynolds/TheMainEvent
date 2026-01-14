@@ -16,10 +16,11 @@ class Pit:
         Self.Target = None
         Self.SelectedChallenge = None
         Self.EarlyStop = False
-        create_task(Self.Send_Panel(User, Interaction))
+        Self.User = User
+        create_task(Self.Send_Panel(Interaction))
 
 
-    async def Send_Panel(Self, User, Interaction:Interaction, FighterOneData=None, FighterTwoData=None):
+    async def Send_Panel(Self, Interaction:Interaction, FighterOneData=None, FighterTwoData=None):
         PitView = View(timeout=144000)
         PitEmbed = Embed(title=f"Name your fighters!")
 
@@ -57,7 +58,7 @@ class Pit:
             PitView.add_item(BattleButton)
 
         DashboardButton = Button(label="Dashboard", style=ButtonStyle.blurple, row=4)
-        DashboardButton.callback = lambda Interaction: Self.ME.Dashboard(User, Interaction, Self.ME)
+        DashboardButton.callback = lambda Interaction: Self.ME.Dashboard(Self.User, Interaction, Self.ME)
         PitView.add_item(DashboardButton)
         
         await Interaction.response.edit_message(view=PitView, embed=PitEmbed)
@@ -233,5 +234,5 @@ class Pit:
     async def Create_Match(Self, Interaction:Interaction, FighterOneData, FighterTwoData):
         PitView = View(timeout=144000)
         PitEmbed = Embed(title=f"Fight has begun in the Main-Event-Pit!")
-        await Self.Battle(Fighter(*FighterOneData), Fighter(*FighterTwoData))
         await Interaction.response.edit_message(view=PitView, embed=PitEmbed)
+        await Self.Battle(Fighter(*FighterOneData), Fighter(*FighterTwoData))
