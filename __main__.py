@@ -4,13 +4,16 @@ if __name__ != "__main__": exit()
 
 from os.path import join
 
-from EverburnLauncher.Library.EverburnBot import EverburnBot
-from EverburnLauncher.Library.Panel import Panel
-
 from discord.abc import GuildChannel
+from discord import app_commands
 from discord import SelectOption, Interaction, ForumChannel
 from discord.ui import Select
+from discord.ext.commands import Context as DiscordContext
+
+from EverburnLauncher.Library.EverburnBot import EverburnBot
+from EverburnLauncher.Library.Panel import Panel
 from Bots.MainEvent.Pit import Pit
+
 
 class MainEvent:
 	def __init__(Self, Bot:EverburnBot):
@@ -65,6 +68,16 @@ ActivityChoice.callback = lambda Interaction: Select_Activity(Interaction, Inter
 MainEventBot.ViewContent.append(ActivityChoice)
 
 MainEventBot.ProtectedGuildIDs.append(1457557663562072138) # CounterFource Casino
+
+
+@MainEventBot.Bot.tree.command(name="arena", description="Invoke Main Event's Arena (Admin Only)")
+async def arena(Interaction:Interaction, action:str):
+	if Interaction.user.id not in MainEventBot.Admins: return
+	if action == "begin":
+		await Interaction.response.send_message("Beginning arena tournament!")
+	else:
+		await Interaction.response.send_message("Invalid action")
+
 
 MainEventBot.Bot.run(MainEventBot.Token)
 
