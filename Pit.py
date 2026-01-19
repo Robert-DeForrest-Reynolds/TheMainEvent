@@ -1,17 +1,17 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from Commence import MainEventBot
+    from Bots.MainEvent.__main__ import MainEvent
 
 from discord import Embed, SelectOption, Interaction, Member, ButtonStyle
 from discord import Message as DiscordMessage
 from discord.ui import Button, Modal, Select, TextInput, View
 from asyncio import create_task, sleep
-from Entities.Fighter import Fighter
+from Bots.MainEvent.Entities.Fighter import Fighter
 from random import randrange
 
 class Pit:
-    def __init__(Self, User, Interaction:Interaction, MEReference:MainEventBot) -> None:
+    def __init__(Self, User, Interaction:Interaction, MEReference:MainEvent) -> None:
         Self.ME = MEReference
         Self.Target = None
         Self.SelectedChallenge = None
@@ -58,7 +58,7 @@ class Pit:
             PitView.add_item(BattleButton)
 
         DashboardButton = Button(label="Dashboard", style=ButtonStyle.blurple, row=4)
-        DashboardButton.callback = lambda Interaction: Self.ME.Dashboard(Self.User, Interaction, Self.ME)
+        DashboardButton.callback = lambda Interaction: Self.ME.Bot.PanelInstance.Reply_Panel(Interaction)
         PitView.add_item(DashboardButton)
         
         await Interaction.response.edit_message(view=PitView, embed=PitEmbed)

@@ -24,6 +24,8 @@ class Dashboard:
 
         MEView = View(timeout=144000)
         MEEmbed = Embed(title=f"Welcome, {Self.User.name}, to the Main Event!")
+
+        
         MEDescription = ""
 
         Activities = [SelectOption(label=Activity) for Activity in Self.ActivitiesList]
@@ -40,6 +42,8 @@ class Dashboard:
         MEView.add_item(ActivityChoice)
 
         MEEmbed.add_field(name="\u200b", value=MEDescription, inline=False)
+
+
         await Interaction.channel.send(view=MEView, embed=MEEmbed)
         await Interaction.message.delete()
 
