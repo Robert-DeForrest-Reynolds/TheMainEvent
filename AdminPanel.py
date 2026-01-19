@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-	from Commence import MainEventBot
+    from Bots.MainEvent.__main__ import MainEvent
 
 from asyncio import create_task
 from discord import Embed, SelectOption, Interaction, Member, ButtonStyle, File
@@ -9,7 +9,7 @@ from discord.ui import View, Button, Modal, Select, TextInput
 from os.path import join
 
 class AdminPanel:
-	def __init__(Self, User, Interaction, MEReference:MainEventBot) -> None:
+	def __init__(Self, User, Interaction, MEReference:MainEvent) -> None:
 		Self.ME = MEReference
 		create_task(Self.Send_Admin_Panel(User, Interaction))
 		
@@ -18,7 +18,7 @@ class AdminPanel:
 		Self.User:Member = User
 		LogMessage = f"{Self.User.name} called for an admin panel"
 		
-		Self.ME.Logger.log(20, LogMessage)
+		Self.ME.Bot.Log(LogMessage)
 
 		AdminView = View(timeout=144000)
 		AdminEmbed = Embed(title=f"Welcome, {Self.User.name}, to the Admin Panel")
@@ -69,11 +69,10 @@ class AdminPanel:
 			await Interaction.response.edit_message(view=AdminView, embed=AdminEmbed)
 
 
-	async def Send_Add_Entry_Modal(Self, User, Interaction):
+	async def Send_Add_Entry_Modal(Self, User, Interaction:Interaction):
 		AddEntry = Modal(title="What're we adding?")
 		AddEntry.on_submit = lambda Interaction: create_task(Self.Add_Entry(User, Interaction, EntryType.value, Query.value))
 
-		
 		EntryType = TextInput(label="w=Weapon | a=Attack Moves | d=Defensive Moves")
 
 		Query = TextInput(label="Entry", row=1)
@@ -84,7 +83,7 @@ class AdminPanel:
 		await Interaction.response.send_modal(AddEntry)
 
 
-	async def Send_Delete_Entry_Modal(Self, User, Interaction):
+	async def Send_Delete_Entry_Modal(Self, User, Interaction:Interaction):
 		DeleteEntry = Modal(title="What're we deleting?")
 		DeleteEntry.on_submit = lambda Interaction: create_task(Self.Delete_Entry(User, Interaction, EntryType.value, Query.value))
 

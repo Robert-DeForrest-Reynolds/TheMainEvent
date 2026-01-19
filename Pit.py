@@ -93,7 +93,12 @@ class Pit:
 
         await Self.Construct_Description(BattleEmbed, FighterOne, FighterTwo)
 
-        Message:DiscordMessage = await Self.ME.Channels["Pit"].send(view=BattleView, embed=BattleEmbed)
+        Thread = await Self.ME.Channels["Pit"].create_thread(name=f"{FighterOne.Data["Name"]} vs. {FighterTwo.Data["Name"]}",
+                                                             content="Welcome to the pit!",
+                                                             view=BattleView,
+                                                             embed=BattleEmbed)
+
+        Message:DiscordMessage = Thread.message
 
         while FighterOne.Data['Health'] > 0 or FighterTwo.Data['Health'] > 0:
             if Self.EarlyStop == True:

@@ -7,14 +7,15 @@ from os.path import join
 from EverburnLauncher.Library.EverburnBot import EverburnBot
 from EverburnLauncher.Library.Panel import Panel
 
-from discord import Embed, SelectOption, Interaction, Member
-from discord.ui import Button, Modal, Select, TextInput, View
-from asyncio import create_task, sleep
+from discord.abc import GuildChannel
+from discord import SelectOption, Interaction, ForumChannel
+from discord.ui import Select
 from Bots.MainEvent.Pit import Pit
 
 class MainEvent:
 	def __init__(Self, Bot:EverburnBot):
-		Self.Channels = {}
+		Self.Forums:dict[str:ForumChannel] = {}
+		Self.Channels:dict[str:GuildChannel] = {}
 		Self.Players = {}
 		Self.Weapons = []
 		Self.AttackMoves = []
@@ -37,21 +38,23 @@ class MainEvent:
 				Self.DefensiveMoves.append(Line.strip())
 
 
+async def Setup(Self:EverburnBot) -> None:
+	MainEventBot.Output("Post setup")
+	ME.Channels.update({"Lounge":MainEventBot.Bot.get_channel(1462614581678706739),
+						"Pit":MainEventBot.Bot.get_channel(1462614973741137953),
+						"Arena":MainEventBot.Bot.get_channel(1462615216733818943)})
+
+
 async def Select_Activity(Interaction:Interaction, Selection:str):
 	if Selection == "Pit":
 		Pit(Interaction.user, Interaction, ME)
-
-
-
-async def Setup(Self:EverburnBot) -> None:
-	MainEventBot.Output("Post setup")
 
 
 MainEventBot:EverburnBot = EverburnBot()
 ME = MainEvent(MainEventBot)
 MainEventBot.Setup = Setup
 
-Activities = [SelectOption(label=Activity) for Activity in ["Arena", "Pit"]]
+Activities = [SelectOption(label=Activity) for Activity in ["Pit"]]
 
 ActivityChoice = Select(placeholder="👣 Select an Activity 👣",
 						options=Activities,
