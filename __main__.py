@@ -38,7 +38,6 @@ class MainEvent:
 
 
 async def Select_Activity(Interaction:Interaction, Selection:str):
-	print(Selection)
 	if Selection == "Pit":
 		Pit(Interaction.user, Interaction, ME)
 
