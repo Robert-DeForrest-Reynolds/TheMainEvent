@@ -15,7 +15,7 @@ ME = MainEvent(MainEventBot)
 
 
 async def Setup(Self:EverburnBot) -> None:
-	MainEventBot.Output("Post setup")
+	MainEventBot.Send("Post setup")
 	ME.Channels.update({"Lounge":MainEventBot.Bot.get_channel(1462614581678706739),
 						"Pit":MainEventBot.Bot.get_channel(1462614973741137953),
 						"Arena":MainEventBot.Bot.get_channel(1462615216733818943)})
@@ -71,5 +71,5 @@ MainEventBot.ProtectedGuildIDs.append(1457557663562072138) # CounterFource Casin
 
 MainEventBot.Bot.run(MainEventBot.Token)
 
-MainEventBot.Output("stopped")
+MainEventBot.Send("stopped")
 exit()
