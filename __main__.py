@@ -2,43 +2,16 @@ from sys import exit
 if __name__ != "__main__": exit()
 
 
-from os.path import join
-
-from discord.abc import GuildChannel
-from discord import app_commands
-from discord import SelectOption, Interaction, ForumChannel
-from discord.ui import Select
-from discord.ext.commands import Context as DiscordContext
+from discord import SelectOption, Interaction, Member, Embed
+from discord.ui import Select, View
 
 from EverburnLauncher.Library.EverburnBot import EverburnBot
-from EverburnLauncher.Library.Panel import Panel
-from Bots.MainEvent.Pit import Pit
+from Bots.MainEvent import MainEvent
+from Bots.MainEvent.Panels.Pit import Pit
 
 
-class MainEvent:
-	def __init__(Self, Bot:EverburnBot):
-		Self.Forums:dict[str:ForumChannel] = {}
-		Self.Channels:dict[str:GuildChannel] = {}
-		Self.Players = {}
-		Self.Weapons = []
-		Self.AttackMoves = []
-		Self.DefensiveMoves = []
-		Self.Bot:EverburnBot = Bot
-
-		with open(join("Bots", "MainEvent", "Data", "Weapons.txt"), 'r') as File:
-			Lines = File.readlines()
-			for Line in Lines:
-				Self.Weapons.append(Line.strip())
-
-		with open(join("Bots", "MainEvent", "Data", "AttackMoves.txt"), 'r') as File:
-			Lines = File.readlines()
-			for Line in Lines:
-				Self.AttackMoves.append(Line.strip())
-
-		with open(join("Bots", "MainEvent", "Data", "DefensiveMoves.txt"), 'r') as File:
-			Lines = File.readlines()
-			for Line in Lines:
-				Self.DefensiveMoves.append(Line.strip())
+MainEventBot:EverburnBot = EverburnBot()
+ME = MainEvent(MainEventBot)
 
 
 async def Setup(Self:EverburnBot) -> None:
@@ -53,13 +26,40 @@ async def Select_Activity(Interaction:Interaction, Selection:str):
 		Pit(Interaction.user, Interaction, ME)
 
 
-MainEventBot:EverburnBot = EverburnBot()
-ME = MainEvent(MainEventBot)
+@MainEventBot.Bot.tree.command(name="challenge", description="Challenge another player to a fight")
+async def challenge(Interaction:Interaction, challengee:Member):
+	ChallengeView = View(timeout=900)
+	ChallengeEmbed = Embed(title="Select the fighters")
+
+	Challenger = ME.Players[Interaction.user]
+	Opponent = ME.Players[challengee]
+
+	ChallengerFighters = [SelectOption(label=Fighter.Name) for Fighter in Challenger.Fighters]
+	OpponentFighters = [SelectOption(label=Fighter.Name) for Fighter in Opponent.Fighters]
+
+	ChallengerFightersSelect = Select(placeholder="Select your fighter", options=ChallengerFighters)
+	OpponentFightersSelect = Select(placeholder="Who are they fighting?", options=OpponentFighters)
+
+	ChallengeView.add_item(ChallengerFightersSelect)
+	ChallengeView.add_item(OpponentFightersSelect)
+
+	await Interaction.response.send_message("What is your challenge?", view=ChallengeView, embed=ChallengeEmbed)
+
+
+@MainEventBot.Bot.tree.command(name="arena", description="Invoke Main Event's Arena (Admin Only)")
+async def arena(Interaction:Interaction, action:str):
+	if Interaction.user.id not in MainEventBot.Admins: return
+	if action == "begin":
+		await Interaction.response.send_message("Beginning arena tournament!", ephemeral=True)
+	else:
+		await Interaction.response.send_message("Invalid action", ephemeral=True, delete_after=5)
+
+
 MainEventBot.Setup = Setup
 
 Activities = [SelectOption(label=Activity) for Activity in ["Pit"]]
 
-ActivityChoice = Select(placeholder="👣 Select an Activity 👣",
+ActivityChoice = Select(placeholder="👣 Select an Action 👣",
 						options=Activities,
 						row=2,
 						custom_id=f"ActivityChoice")
@@ -68,16 +68,6 @@ ActivityChoice.callback = lambda Interaction: Select_Activity(Interaction, Inter
 MainEventBot.ViewContent.append(ActivityChoice)
 
 MainEventBot.ProtectedGuildIDs.append(1457557663562072138) # CounterFource Casino
-
-
-@MainEventBot.Bot.tree.command(name="arena", description="Invoke Main Event's Arena (Admin Only)")
-async def arena(Interaction:Interaction, action:str):
-	if Interaction.user.id not in MainEventBot.Admins: return
-	if action == "begin":
-		await Interaction.response.send_message("Beginning arena tournament!")
-	else:
-		await Interaction.response.send_message("Invalid action")
-
 
 MainEventBot.Bot.run(MainEventBot.Token)
 
