@@ -3,7 +3,7 @@ from os.path import join
 from discord.abc import GuildChannel
 from discord import ForumChannel
 
-from EverburnLauncher.Library.EverburnBot import EverburnBot
+from Library.EverburnBot import EverburnBot
 
 
 class MainEvent:

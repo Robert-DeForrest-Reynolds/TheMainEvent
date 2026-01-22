@@ -5,7 +5,7 @@ if __name__ != "__main__": exit()
 from discord import SelectOption, Interaction, Member, Embed
 from discord.ui import Select, View
 
-from EverburnLauncher.Library.EverburnBot import EverburnBot
+from Library.EverburnBot import EverburnBot
 from Bots.MainEvent import MainEvent
 from Bots.MainEvent.Panels.Pit import Pit
 
