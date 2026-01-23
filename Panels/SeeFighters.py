@@ -24,7 +24,7 @@ class SeeFighters:
 
 	async def Send_Panel(Self, Interaction:DiscordInteraction):
 		if Interaction.user.id != Self.User.id: return
-		Self.View = View(timeout=144000)
+		Self.View = View(timeout=60*5)
 		Self.Embed = Embed(title=f"{Interaction.user}'s Fighter's")
 
 		DashboardButton = Button(label="Buy Fighter", style=ButtonStyle.blurple, row=4)
