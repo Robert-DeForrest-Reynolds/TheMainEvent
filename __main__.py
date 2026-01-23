@@ -20,31 +20,16 @@ async def Setup() -> None:
 	ME.Channels.update({"Lounge":MainEventBot.Bot.get_channel(1462614581678706739),
 						"Pit":MainEventBot.Bot.get_channel(1462614973741137953),
 						"Arena":MainEventBot.Bot.get_channel(1462615216733818943)})
-	
-
-def Panel_Callback(InitialContext:DiscordContext):
-	AlbertEinstein = Fighter("Albert Einstein")
-	JohnWick = Fighter("John Wick")
-	TheJudge = Fighter("The Judge")
-
-	ME.Save_New_Fighter(InitialContext.author, AlbertEinstein)
-
-	ME.Save_New_Fighter(InitialContext.author, JohnWick)
-
-	ME.Save_New_Fighter(InitialContext.author, TheJudge)
-	Fighters = ME.Get_Fighters(InitialContext.author)
-	MainEventBot.Send(f"Fighters:{Fighters}")
-
-
-async def Select_Activity(Interaction:Interaction, Selection:str):
-	if Selection == "See Fighters":
-		SeeFighters(Interaction.user, Interaction, ME)
 
 
 @MainEventBot.Bot.tree.command(name="challenge", description="Challenge another player to a fight")
 async def challenge(Interaction:Interaction, challengee:Member):
 	ChallengeView = View(timeout=900)
 	ChallengeEmbed = Embed(title="Select the fighters")
+
+	# get all fighters of challenger, and challengee
+	# get wager, and ensure the challenger has enough for it
+	# send it to the database, and to the other player
 
 	Challenger = ME.Players[Interaction.user]
 	Opponent = ME.Players[challengee]
@@ -76,19 +61,6 @@ async def fighters(Interaction:Interaction):
 
 
 MainEventBot.Setup = Setup
-MainEventBot.PanelCallback = Panel_Callback
-
-Activities = [SelectOption(label=Activity) for Activity in ["See Fighters"]]
-
-ActivityChoice = Select(placeholder="👣 Select an Action 👣",
-						options=Activities,
-						row=2,
-						custom_id=f"ActivityChoice")
-ActivityChoice.callback = lambda Interaction: Select_Activity(Interaction, Interaction.data["values"][0])
-
-MainEventBot.ViewContent.append(ActivityChoice)
-
-MainEventBot.ProtectedGuildIDs.append(1457557663562072138) # CounterFource Casino
 
 MainEventBot.Bot.run(MainEventBot.Token)
 
