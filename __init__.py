@@ -45,7 +45,7 @@ class MainEvent:
 		CREATE TABLE IF NOT EXISTS Fighters (
 			FighterId   INTEGER PRIMARY KEY AUTOINCREMENT,
 			OwnerId     TEXT NOT NULL,
-			Name        TEXT NOT NULL,
+			Name        TEXT NOT NULL UNIQUE,
 			Level       INTEGER DEFAULT 1,
 			Health		INTEGER NOT NULL,
 			Power		INTEGER NOT NULL,
@@ -65,9 +65,8 @@ class MainEvent:
 	def Save_New_Fighter(Self, Member:DiscordMember, F:Fighter):
 		Data = Self.Bot.Get_Player_Data(Member)
 
-		Connection = connect(join("Data", "Desmond.db"))
-		Connection.cursor().execute("UPDATE Players SET FighterCount=? WHERE ID=?", (Data["Fighter Count"]+1, Member.id))
-		Connection.commit()
+		Self.Bot.DesmondDB.cursor().execute("UPDATE Players SET FighterCount=? WHERE ID=?", (Data["Fighter Count"]+1, Member.id))
+		Self.Bot.DesmondDB.commit()
 
 		Self.DBCursor.execute("INSERT OR IGNORE INTO Fighters (OwnerID, Name, Health, Power, Defense) VALUES (?,?,?,?,?)",
 							  (Member.id, F.Name, F.Health, F.Power, F.Defense))
