@@ -1,24 +1,38 @@
 from sys import exit
 if __name__ != "__main__": exit()
 
-
+from discord.ext.commands import Context as DiscordContext
 from discord import SelectOption, Interaction, Member, Embed
 from discord.ui import Select, View
 
 from Library.EverburnBot import EverburnBot
 from Bots.MainEvent import MainEvent
 from Bots.MainEvent.Panels.Pit import Pit
+from Bots.MainEvent.Entities.Fighter import Fighter
 
 
 MainEventBot:EverburnBot = EverburnBot()
 ME = MainEvent(MainEventBot)
 
-
-async def Setup(Self:EverburnBot) -> None:
+async def Setup() -> None:
 	MainEventBot.Send("Post setup")
 	ME.Channels.update({"Lounge":MainEventBot.Bot.get_channel(1462614581678706739),
 						"Pit":MainEventBot.Bot.get_channel(1462614973741137953),
 						"Arena":MainEventBot.Bot.get_channel(1462615216733818943)})
+	
+
+def Panel_Callback(InitialContext:DiscordContext):
+	AlbertEinstein = Fighter("Albert Einstein")
+	JohnWick = Fighter("John Wick")
+	TheJudge = Fighter("The Judge")
+
+	ME.Save_New_Fighter(InitialContext.author, AlbertEinstein)
+
+	ME.Save_New_Fighter(InitialContext.author, JohnWick)
+
+	ME.Save_New_Fighter(InitialContext.author, TheJudge)
+	Fighters = ME.Get_Fighters(InitialContext.author)
+	MainEventBot.Send(f"Fighters:{Fighters}")
 
 
 async def Select_Activity(Interaction:Interaction, Selection:str):
@@ -56,6 +70,7 @@ async def arena(Interaction:Interaction, action:str):
 
 
 MainEventBot.Setup = Setup
+MainEventBot.PanelCallback = Panel_Callback
 
 Activities = [SelectOption(label=Activity) for Activity in ["Pit"]]
 
@@ -72,4 +87,5 @@ MainEventBot.ProtectedGuildIDs.append(1457557663562072138) # CounterFource Casin
 MainEventBot.Bot.run(MainEventBot.Token)
 
 MainEventBot.Send("stopped")
+ME.DB.close()
 exit()
