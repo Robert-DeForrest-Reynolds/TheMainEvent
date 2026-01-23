@@ -8,6 +8,7 @@ from discord.ui import Select, View
 from Library.EverburnBot import EverburnBot
 from Bots.MainEvent import MainEvent
 from Bots.MainEvent.Panels.Pit import Pit
+from Bots.MainEvent.Panels.SeeFighters import SeeFighters
 from Bots.MainEvent.Entities.Fighter import Fighter
 
 
@@ -36,8 +37,8 @@ def Panel_Callback(InitialContext:DiscordContext):
 
 
 async def Select_Activity(Interaction:Interaction, Selection:str):
-	if Selection == "Pit":
-		Pit(Interaction.user, Interaction, ME)
+	if Selection == "See Fighters":
+		SeeFighters(Interaction.user, Interaction, ME)
 
 
 @MainEventBot.Bot.tree.command(name="challenge", description="Challenge another player to a fight")
@@ -69,10 +70,15 @@ async def arena(Interaction:Interaction, action:str):
 		await Interaction.response.send_message("Invalid action", ephemeral=True, delete_after=5)
 
 
+@MainEventBot.Bot.tree.command(name="fighters", description="Manage your Main Event fighters")
+async def fighters(Interaction:Interaction):
+	SeeFighters(Interaction.user, Interaction, ME)
+
+
 MainEventBot.Setup = Setup
 MainEventBot.PanelCallback = Panel_Callback
 
-Activities = [SelectOption(label=Activity) for Activity in ["Pit"]]
+Activities = [SelectOption(label=Activity) for Activity in ["See Fighters"]]
 
 ActivityChoice = Select(placeholder="👣 Select an Action 👣",
 						options=Activities,
