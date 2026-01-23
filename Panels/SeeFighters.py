@@ -40,6 +40,8 @@ class SeeFighters:
 		if Self.ME.Bot.Transact(Interaction.user, 300):
 			Self.Embed.add_field(name="Wallet", value=f"${Self.ME.Bot.Get_Wallet(Interaction.user):,.2f}", inline=False)
 			Self.Embed.add_field(name="Purchased Fighter:", value="Fighter Details", inline=False)
+			F = Fighter("Fighter 1")
+			Self.ME.Save_New_Fighter(Interaction.user, F)
 		else:
 			Self.Embed.add_field(name="Insufficient funds.", value="Fighter Details", inline=False)
 		await Interaction.response.edit_message(view=Self.View, embed=Self.Embed)

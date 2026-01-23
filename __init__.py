@@ -63,6 +63,12 @@ class MainEvent:
 
 
 	def Save_New_Fighter(Self, Member:DiscordMember, F:Fighter):
+		Data = Self.Bot.Get_Player_Data(Member)
+
+		Connection = connect(join("Data", "Desmond.db"))
+		Connection.cursor().execute("UPDATE Players SET FighterCount=? WHERE ID=?", (Data["Fighter Count"]+1, Member.id))
+		Connection.commit()
+
 		Self.DBCursor.execute("INSERT OR IGNORE INTO Fighters (OwnerID, Name, Health, Power, Defense) VALUES (?,?,?,?,?)",
 							  (Member.id, F.Name, F.Health, F.Power, F.Defense))
 		Self.DB.commit()
