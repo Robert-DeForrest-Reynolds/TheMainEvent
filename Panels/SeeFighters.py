@@ -38,9 +38,30 @@ class SeeFighters:
 		
 		await Interaction.response.send_message(view=Self.View, embed=Self.Embed)
 
+	
+	def Check_Fighters(Self) -> bool:
+		Cursor = Self.ME.DB.cursor()
+		Cursor.execute(
+			"SELECT COUNT(*) FROM Fighters WHERE OwnerID = ?",
+			(Self.User.id,)
+		)
+		FighterCount = Cursor.fetchone()[0]
+
+		if FighterCount >= 25:
+			return False
+		else:
+			return True
+		
+
 
 	async def Check_Funds(Self, Interaction:DiscordInteraction):
 		if Interaction.user.id != Self.User.id: return
+		if not Self.Check_Fighters():
+			Self.Embed = Embed(title=f"{Interaction.user}'s Fighter's")
+			Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
+			Self.Embed.add_field(name="You already possess maximum fighters (25)", value="", inline=False)
+			await Interaction.response.edit_message(view=Self.View, embed=Self.Embed)
+			return
 		Self.Funds = Self.ME.Bot.Get_Wallet(Interaction.user)
 		if 300 > Self.Funds:
 			Self.Embed = Embed(title=f"{Interaction.user}'s Fighter's")
