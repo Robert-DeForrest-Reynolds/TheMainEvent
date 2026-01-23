@@ -59,7 +59,9 @@ class MainEvent:
 	def Get_Fighters(Self, Member:DiscordMember):
 		Self.DBCursor.execute("SELECT * FROM Fighters WHERE OwnerID=?", (Member.id,))
 		Data = Self.DBCursor.fetchall()
-		return Data
+		Fighters = {Name:{"ID":ID, "Name":Name, "Level":Level, "Health":Health, "Power":Power, "Defense":Defense, "Created At":CreatedAt}
+			  		for ID, OwnerID, Name, Level, Health, Power, Defense, CreatedAt in Data}
+		return Fighters
 
 
 	def Save_New_Fighter(Self, Member:DiscordMember, F:Fighter):

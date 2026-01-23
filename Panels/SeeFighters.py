@@ -19,18 +19,37 @@ class SeeFighters:
 		Self.User = User
 		Self.View = None
 		Self.Embed = None
+		Self.Fighters:dict = None
+		Self.SelectedFighter = None
 		Self.OriginInteraction = Interaction
 		create_task(Self.Send_Panel(Interaction))
 
 
-	async def Send_Panel(Self, Interaction:DiscordInteraction, InvalidName:str|None=None):
+	async def Send_Panel(Self, Interaction:DiscordInteraction, SelectedFighter:str=None, InvalidName:str|None=None):
 		if Interaction.user.id != Self.User.id: return
+		Self.Fighters = Self.ME.Get_Fighters(Self.User)
 		Self.View = View(timeout=60*5)
 		Self.Embed = Embed(title=f"{Interaction.user}'s Fighter's")
 		Self.Funds = Self.ME.Bot.Get_Wallet(Interaction.user)
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 		if InvalidName:
 			Self.Embed.add_field(name="Error:", value=f"`{InvalidName}` already exists", inline=False)
+
+		if SelectedFighter:
+			Self.SelectedFighter = SelectedFighter
+			Self.Stats = Self.Fighters[Self.SelectedFighter]
+			Details = f"Level: {Self.Stats["Level"]}\n"
+			Details += f"Health: {Self.Stats["Health"]}\n"
+			Details += f"Power: {Self.Stats["Power"]}\n"
+			Details += f"Defense: {Self.Stats["Defense"]}\n"
+			Self.Embed.add_field(name=SelectedFighter, value=Details, inline=False)
+
+
+		Options = [SelectOption(label=F["Name"]) for F in Self.Fighters.values()]
+
+		Fighters = Select(placeholder="Select Fighter...", options=Options)
+		Fighters.callback = lambda Interaction: Self.Send_Panel(Interaction, SelectedFighter=Fighters.values[0])
+		Self.View.add_item(Fighters)
 
 		DashboardButton = Button(label="Buy Fighter", style=ButtonStyle.green, row=4)
 		DashboardButton.callback = Self.Check_Funds
@@ -52,7 +71,6 @@ class SeeFighters:
 		else:
 			return True
 		
-
 
 	async def Check_Funds(Self, Interaction:DiscordInteraction):
 		if Interaction.user.id != Self.User.id: return
@@ -82,7 +100,7 @@ class SeeFighters:
 		if not Exists:
 			await Self.Purchase_Fighter(Interaction, Name)
 		else:
-			await Self.Send_Panel(Interaction, Name)
+			await Self.Send_Panel(Interaction, InvalidName=Name)
 
 
 	async def Get_Name_Modal(Self, Interaction:DiscordInteraction):
