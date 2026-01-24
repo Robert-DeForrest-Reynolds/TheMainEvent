@@ -36,13 +36,15 @@ class Challenge:
 		ChallengerFighters = Self.ME.Get_Fighters(Interaction.user)
 		Opponentfighters = Self.ME.Get_Fighters(Self.Opponent)
 
-		if len(Opponentfighters) == 0:
+		if len(ChallengerFighters) == 0:
 			Self.Embed.title = "Challenge Error"
-			Self.Embed.add_field(name="Error:", value=f"{Self.Opponent.name} has no fighters")
-			if Edit:
-				await Interaction.response.edit_message(view=Self.View, embed=Self.Embed)
-			else:
-				await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			Self.Embed.add_field(name="Error:", value=f"You have no fighters.")
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			return
+		elif len(Opponentfighters) == 0:
+			Self.Embed.title = "Challenge Error"
+			Self.Embed.add_field(name="Error:", value=f"{Self.Opponent.name} has no fighters.")
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
 			return
 
 		if Self.Fighter and Self.OpponentFighter:
