@@ -8,6 +8,7 @@ from discord.ui import Select, View
 from Library.EverburnBot import EverburnBot
 from Bots.MainEvent import MainEvent
 from Bots.MainEvent.Panels.Pit import Pit
+from Bots.MainEvent.Panels.Challenge import Challenge
 from Bots.MainEvent.Panels.SeeFighters import SeeFighters
 from Bots.MainEvent.Entities.Fighter import Fighter
 
@@ -19,31 +20,13 @@ async def Setup() -> None:
 	MainEventBot.Send("Post setup")
 	ME.Channels.update({"Lounge":MainEventBot.Bot.get_channel(1462614581678706739),
 						"Pit":MainEventBot.Bot.get_channel(1462614973741137953),
-						"Arena":MainEventBot.Bot.get_channel(1462615216733818943)})
+						"Arena":MainEventBot.Bot.get_channel(1462615216733818943),
+						"Challenges":MainEventBot.Bot.get_channel(1464681901775392768)})
 
 
 @MainEventBot.Bot.tree.command(name="challenge", description="Challenge another player to a fight")
-async def challenge(Interaction:Interaction, challengee:Member):
-	ChallengeView = View(timeout=900)
-	ChallengeEmbed = Embed(title="Select the fighters")
-
-	# get all fighters of challenger, and challengee
-	# get wager, and ensure the challenger has enough for it
-	# send it to the database, and to the other player
-
-	Challenger = ME.Players[Interaction.user]
-	Opponent = ME.Players[challengee]
-
-	ChallengerFighters = [SelectOption(label=Fighter.Name) for Fighter in Challenger.Fighters]
-	OpponentFighters = [SelectOption(label=Fighter.Name) for Fighter in Opponent.Fighters]
-
-	ChallengerFightersSelect = Select(placeholder="Select your fighter", options=ChallengerFighters)
-	OpponentFightersSelect = Select(placeholder="Who are they fighting?", options=OpponentFighters)
-
-	ChallengeView.add_item(ChallengerFightersSelect)
-	ChallengeView.add_item(OpponentFightersSelect)
-
-	await Interaction.response.send_message("What is your challenge?", view=ChallengeView, embed=ChallengeEmbed)
+async def challenge(Interaction:Interaction, challengee:Member, wager:float):
+	Challenge(Interaction, challengee, wager, ME)
 
 
 @MainEventBot.Bot.tree.command(name="arena", description="Invoke Main Event's Arena (Admin Only)")

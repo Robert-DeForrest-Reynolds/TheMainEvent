@@ -14,9 +14,9 @@ from random import randrange
 
 
 class SeeFighters:
-	def __init__(Self, User:DiscordMember, Interaction:DiscordInteraction, MEReference:MainEvent) -> None:
+	def __init__(Self, Interaction:DiscordInteraction, MEReference:MainEvent) -> None:
 		Self.ME = MEReference
-		Self.User = User
+		Self.User = Interaction.user
 		Self.View = None
 		Self.Embed = None
 		Self.Fighters:dict = None
@@ -43,7 +43,6 @@ class SeeFighters:
 			Details += f"Power: {Self.Stats["Power"]}\n"
 			Details += f"Defense: {Self.Stats["Defense"]}\n"
 			Self.Embed.add_field(name=SelectedFighter, value=Details, inline=False)
-
 
 		Options = [SelectOption(label=F["Name"]) for F in Self.Fighters.values()]
 
