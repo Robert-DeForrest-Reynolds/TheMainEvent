@@ -28,20 +28,34 @@ class Challenge:
 
 	async def Send_Panel(Self, Interaction:DiscordInteraction, Edit=False):
 		if Interaction.user.id != Self.User.id: return
-		Self.Embed = Embed(title="Select the fighters")
 		Self.View = View(timeout=60*5)
+		Self.Embed = Embed(title="Select the fighters")
 		
 		Self.Funds = Self.ME.Bot.Get_Wallet(Interaction.user)
 
 		ChallengerFighters = Self.ME.Get_Fighters(Interaction.user)
 		Opponentfighters = Self.ME.Get_Fighters(Self.Opponent)
 
+		if not Self.Check_Challenges(Self.User):
+			Self.Embed.add_field(name="Challenge Error:", value="You have max challenges already (25).")
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed)
+			return
+		if not Self.Check_Challenges(Self.Opponent):
+			Self.Embed.add_field(name="Challenge Error:", value=f"{Self.Opponent.name} has max challenges already (25).")
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed)
+			return
+		
+		if Self.Wager <= 10:
+			Self.Embed.title = "Challenge Error"
+			Self.Embed.add_field(name="Error:", value="Must have a minimum wager of $10 to submit a challenge.")
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			return
 		if len(ChallengerFighters) == 0:
 			Self.Embed.title = "Challenge Error"
 			Self.Embed.add_field(name="Error:", value=f"You have no fighters.")
 			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
 			return
-		elif len(Opponentfighters) == 0:
+		if len(Opponentfighters) == 0:
 			Self.Embed.title = "Challenge Error"
 			Self.Embed.add_field(name="Error:", value=f"{Self.Opponent.name} has no fighters.")
 			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
@@ -56,9 +70,9 @@ class Challenge:
 			Confirm.callback = Self.Confirm_Fight
 			Self.View.add_item(Confirm)
 		else:
-			Details = "Select your fighter, and set a wager.\n"
-			Details += "Then select the fighter you want to challenge,\n"
-			Details += "or leave it blank to allow them to choose.\n\n"
+			Details = "Select your fighter.\n\n\n"
+			# Details += "Then select the fighter you want to challenge,\n"
+			# Details += "or leave it blank to allow them to choose.\n\n"
 			Details += "*⁽ᶠᵘʳᵗʰᵉʳ ʳᵉᵍᵘˡᵃᵗᶦᵒⁿˢ ᵒⁿ ᶜʰᵃˡˡᵉⁿᵍᵉˢ ᵃʳᵉ ᵗᵒ ᶜᵒᵐᵉ⁾*"
 			Self.Embed.add_field(name="Welcome to the Main Event challenger!", value=Details)
 
@@ -79,6 +93,18 @@ class Challenge:
 			await Interaction.response.edit_message(view=Self.View, embed=Self.Embed)
 		else:
 			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+
+	
+	def Check_Challenges(Self, Member:DiscordMember) -> bool:
+		Self.ME.DBCursor.execute(
+			"SELECT COUNT(*) FROM Challenges WHERE ChallengerID = ? OR ChallengeeID = ?",
+			(Member.id, Member.id)
+		)
+		ChallengeCount = Self.ME.DBCursor.fetchone()[0]
+		if ChallengeCount >= 25:
+			return False
+		else:
+			return True
 
 
 	async def Set(Self, Interaction, Fighter:str=None, OpponentFighter:str=None, Wager:int=None):

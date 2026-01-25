@@ -7,7 +7,7 @@ from discord import ForumChannel
 
 from Library.EverburnBot import EverburnBot
 from Bots.MainEvent.Entities.Fighter import Fighter
-
+from Bots.MainEvent.Pit import Pit
 
 class MainEvent:
 	def __init__(Self, Bot:EverburnBot):
@@ -17,6 +17,7 @@ class MainEvent:
 		Self.AttackMoves = []
 		Self.DefensiveMoves = []
 		Self.Bot:EverburnBot = Bot
+		Self.Pit:Pit = None
 
 		with open(join("Bots", "MainEvent", "Data", "Weapons.txt"), 'r') as File:
 			Lines = File.readlines()
@@ -43,7 +44,7 @@ class MainEvent:
 
 		Self.DBCursor.execute("""
 		CREATE TABLE IF NOT EXISTS Fighters (
-			FighterID   INTEGER PRIMARY KEY AUTOINCREMENT,
+			ID   INTEGER PRIMARY KEY AUTOINCREMENT,
 			OwnerID     TEXT NOT NULL,
 			Name        TEXT NOT NULL UNIQUE,
 			Level       INTEGER DEFAULT 1,
@@ -56,9 +57,9 @@ class MainEvent:
 
 		Self.DBCursor.execute("""
 		CREATE TABLE IF NOT EXISTS Challenges (
-			ChallengeID   		TEXT PRIMARY KEY,
-			Challenger    		INTEGER NOT NULL,
-			Challengee  		INTEGER NOT NULL,
+			ID   				TEXT PRIMARY KEY,
+			ChallengerID    	INTEGER NOT NULL,
+			ChallengeeID  		INTEGER NOT NULL,
 			ChallengerFighter	TEXT NOT NULL,
 			ChallengeeFighter	TEXT NOT NULL,
 			Wager				REAL NOT NULL,
@@ -68,12 +69,73 @@ class MainEvent:
 		Self.DB.commit()
 
 
+	def Get_Challenges(Self, Member:DiscordMember):
+		Self.DBCursor.execute(
+			"SELECT * FROM Challenges WHERE ChallengerID=?",
+			(Member.id,),
+		)
+		Data = Self.DBCursor.fetchall()
+		Challenges = {Self.Bot.TheGreatHearth.get_member(ChallengeeID).name:
+								   {"ID":ChallengeID,
+							  		"Challenger":Self.Bot.TheGreatHearth.get_member(ChallengerID),
+							  		"Challengee":Self.Bot.TheGreatHearth.get_member(ChallengeeID),
+								    "ChallengerID":ChallengerID,
+								    "ChallengeeID":ChallengeeID,
+								    "ChallengerFighter":ChallengerFighter,
+								    "ChallengeeFighter":ChallengeeFighter,
+								    "Wager":Wager,
+								    "Created At":CreatedAt}
+			  		for ChallengeID, ChallengerID, ChallengeeID, ChallengerFighter, ChallengeeFighter, Wager, CreatedAt in Data}
+		return Challenges
+
+
+	def Get_Opposing_Challenges(Self, Member:DiscordMember):
+		Self.DBCursor.execute(
+			"SELECT * FROM Challenges WHERE ChallengeeID=?",
+			(Member.id,),
+		)
+		Data = Self.DBCursor.fetchall()
+		Challenges = {Self.Bot.TheGreatHearth.get_member(ChallengerID).name:
+								   {"ID":ChallengeID,
+							  		"Challenger":Self.Bot.TheGreatHearth.get_member(ChallengerID),
+							  		"Challengee":Self.Bot.TheGreatHearth.get_member(ChallengeeID),
+								    "ChallengerID":ChallengerID,
+								    "ChallengeeID":ChallengeeID,
+								    "ChallengerFighter":ChallengerFighter,
+								    "ChallengeeFighter":ChallengeeFighter,
+								    "Wager":Wager,
+								    "Created At":CreatedAt}
+			  		for ChallengeID, ChallengerID, ChallengeeID, ChallengerFighter, ChallengeeFighter, Wager, CreatedAt in Data}
+		return Challenges
+
+
 	def Get_Fighters(Self, Member:DiscordMember):
 		Self.DBCursor.execute("SELECT * FROM Fighters WHERE OwnerID=?", (Member.id,))
 		Data = Self.DBCursor.fetchall()
 		Fighters = {Name:{"ID":ID, "Name":Name, "Level":Level, "Health":Health, "Power":Power, "Defense":Defense, "Created At":CreatedAt}
 			  		for ID, OwnerID, Name, Level, Health, Power, Defense, CreatedAt in Data}
 		return Fighters
+
+
+	def Get_Fighter(Self, FighterName:str) -> Fighter:
+		Self.DBCursor.execute("SELECT * FROM Fighters WHERE Name=?", (FighterName,))
+		FighterData = Self.DBCursor.fetchone()
+		F = Fighter(FighterName, FighterData[4],FighterData[5],FighterData[6])
+		return F
+	
+
+	def Delete_Fighter(Self, Member, FighterName:str):
+		Self.Bot.Send(FighterName)
+
+		Data = Self.Bot.Get_Player_Data(Member)
+		Self.Bot.DesmondDB.cursor().execute("UPDATE Players SET FighterCount=? WHERE ID=?", (Data["Fighter Count"]-1, Member.id))
+		Self.Bot.DesmondDB.commit()
+
+		Self.DBCursor.execute(
+			"DELETE FROM Fighters WHERE Name=?",
+			(FighterName,)
+		)
+		Self.DB.commit()
 
 
 	def Save_New_Fighter(Self, Member:DiscordMember, F:Fighter):
@@ -89,6 +151,14 @@ class MainEvent:
 
 	def Save_New_Challenge(Self, Challenger:DiscordMember, Challengee:DiscordMember, Data:list):
 		ChallengeID = f"{Challenger.id}{Challengee.id}"
-		Self.DBCursor.execute("INSERT OR IGNORE INTO Challenges (ChallengeID, Challenger, Challengee, ChallengerFighter, ChallengeeFighter, Wager) VALUES (?,?,?,?,?,?)",
+		Self.DBCursor.execute("INSERT OR IGNORE INTO Challenges (ID, ChallengerID, ChallengeeID, ChallengerFighter, ChallengeeFighter, Wager) VALUES (?,?,?,?,?,?)",
 							  (ChallengeID, Challenger.id, Challengee.id, Data[0], Data[1], Data[2]))
+		Self.DB.commit()
+
+
+	def Delete_Challenge(Self, ChallengeID:str):
+		Self.DBCursor.execute(
+			"DELETE FROM Challenges WHERE ID=?",
+			(ChallengeID,)
+		)
 		Self.DB.commit()

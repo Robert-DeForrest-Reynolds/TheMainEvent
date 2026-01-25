@@ -1,20 +1,18 @@
 from sys import exit
 if __name__ != "__main__": exit()
 
-from discord.ext.commands import Context as DiscordContext
-from discord import SelectOption, Interaction, Member, Embed
-from discord.ui import Select, View
+from discord import Interaction, Member
 
 from Library.EverburnBot import EverburnBot
 from Bots.MainEvent import MainEvent
-from Bots.MainEvent.Panels.Pit import Pit
 from Bots.MainEvent.Panels.Challenge import Challenge
-from Bots.MainEvent.Panels.SeeFighters import SeeFighters
-from Bots.MainEvent.Entities.Fighter import Fighter
+from Bots.MainEvent.Pit import Pit
+from Bots.MainEvent.Panels.Fighters import Fighters
 
 
 MainEventBot:EverburnBot = EverburnBot()
 ME = MainEvent(MainEventBot)
+
 
 async def Setup() -> None:
 	MainEventBot.Send("Post setup")
@@ -22,6 +20,7 @@ async def Setup() -> None:
 						"Pit":MainEventBot.Bot.get_channel(1462614973741137953),
 						"Arena":MainEventBot.Bot.get_channel(1462615216733818943),
 						"Challenges":MainEventBot.Bot.get_channel(1464681901775392768)})
+	ME.Pit = Pit(ME)
 
 
 @MainEventBot.Bot.tree.command(name="challenge", description="Challenge another player to a fight")
@@ -40,13 +39,13 @@ async def arena(Interaction:Interaction, action:str):
 
 @MainEventBot.Bot.tree.command(name="fighters", description="Manage your Main Event fighters")
 async def fighters(Interaction:Interaction):
-	SeeFighters(Interaction.user, Interaction, ME)
+	Fighters(Interaction, ME)
 
 
 MainEventBot.Setup = Setup
 
 MainEventBot.Bot.run(MainEventBot.Token)
-
+ME.Pit.Alive = False
 MainEventBot.Send("stopped")
 ME.DB.close()
 exit()
