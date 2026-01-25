@@ -144,5 +144,6 @@ class Pit:
             BattleEmbed.add_field(name="**Fight Details**", value="")
             Self.ME.Bot.Add_To_Wallet(WinningMember, Self.CurrentFight["Wager"])
             Self.ME.Bot.Subject_From_Wallet(LosingMember, Self.CurrentFight["Wager"])
+            Self.ME.Delete_Challenge(Self.CurrentFight["ID"])
             Self.CurrentFight = None
             await Message.edit(embed=BattleEmbed)
