@@ -22,7 +22,7 @@ async def Setup() -> None:
 						"Arena":CrucibleBot.Bot.get_channel(1462615216733818943),
 						"Challenges":CrucibleBot.Bot.get_channel(1464681901775392768)})
 	C.Pit = Pit(C)
-	await CrucibleBot.Bot.change_presence(activity=DiscordGame(f'/fighters'), status="Tending the fights.")
+	await CrucibleBot.Bot.change_presence(activity=DiscordGame(f'/{"_" if CrucibleBot.Testing else ""}fighters'), status="Tending the fights.")
 
 
 
