@@ -6,31 +6,30 @@ if TYPE_CHECKING:
 from discord import Interaction as DiscordInteraction
 from discord import Member as DiscordMember
 from discord import Embed, SelectOption, ButtonStyle, TextChannel
-from discord.ui import Button, Modal, Select, TextInput, View
+from discord.ui import Button, Select
+from Library.Panel import Panel
 from asyncio import create_task
 
 
-class Challenge:
+class Challenge(Panel):
 	def __init__(Self, Interaction:DiscordInteraction, Opponent:DiscordMember, Wager:float, MEReference:MainEvent) -> None:
+		super().__init__(Interaction.user, MEReference.Bot)
 		Self.ME = MEReference
-		Self.User = Interaction.user
 		Self.Opponent = Opponent
-		Self.View = None
-		Self.Embed = None
 		Self.Fighters:dict = None
 		Self.Fighter = None
 		Self.OpponentFighter = None
 		Self.Wager = Wager
 		Self.OriginInteraction = Interaction
-		create_task(Self.Send_Panel(Interaction))
+		Self.Task = create_task(Self.Send_Panel(Interaction))
 
 
 	async def Send_Panel(Self, Interaction:DiscordInteraction, Edit=False):
 		if Interaction.user.id != Self.User.id: return
-		Self.View = View(timeout=60*5)
+		await Self.Referesh_Panel()
 		Self.Embed = Embed(title="Select the fighters")
 		
-		Self.Funds = Self.ME.Bot.Get_Wallet(Interaction.user)
+		Self.Funds = Self.Bot.Get_Wallet(Interaction.user)
 
 		ChallengerFighters = Self.ME.Get_Fighters(Interaction.user)
 		Opponentfighters = Self.ME.Get_Fighters(Self.Opponent)
@@ -78,20 +77,21 @@ class Challenge:
 			ChallengerFightersOptions = [SelectOption(label=Name) for Name in ChallengerFighters.keys()]
 			OpponentFightersOptions = [SelectOption(label=Name) for Name in Opponentfighters.keys()]
 
-			ChallengerFightersSelect = Select(placeholder="Your fighter...", options=ChallengerFightersOptions, row=0)
-			if Self.Fighter: ChallengerFightersSelect.placeholder = Self.Fighter
-			ChallengerFightersSelect.callback = lambda Interaction: Self.Set(Interaction, Fighter=ChallengerFightersSelect.values[0])
-			Self.View.add_item(ChallengerFightersSelect)
+			Self.ChallengerFightersSelect = Select(placeholder="Your fighter...", options=ChallengerFightersOptions, row=0)
+			if Self.Fighter: Self.ChallengerFightersSelect.placeholder = Self.Fighter
+			Self.ChallengerFightersSelect.callback = Self.Set_Fighter
+			Self.View.add_item(Self.ChallengerFightersSelect)
 
-			OpponentFightersSelect = Select(placeholder="Opponent's fighter...", options=OpponentFightersOptions, row=1)
-			if Self.OpponentFighter: OpponentFightersSelect.placeholder = Self.OpponentFighter
-			OpponentFightersSelect.callback = lambda Interaction: Self.Set(Interaction, OpponentFighter=OpponentFightersSelect.values[0])
-			Self.View.add_item(OpponentFightersSelect)
+			Self.OpponentFightersSelect = Select(placeholder="Opponent's fighter...", options=OpponentFightersOptions, row=1)
+			if Self.OpponentFighter: Self.OpponentFightersSelect.placeholder = Self.OpponentFighter
+			Self.OpponentFightersSelect.callback = Self.Set_Opponent_Fighter
+			Self.View.add_item(Self.OpponentFightersSelect)
+
 
 		if Edit:
 			await Interaction.response.edit_message(view=Self.View, embed=Self.Embed)
 		else:
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			Self.Message = await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
 
 	
 	def Check_Challenges(Self, Member:DiscordMember) -> bool:
@@ -104,18 +104,21 @@ class Challenge:
 			return False
 		else:
 			return True
+		
 
+	async def Set_Fighter(Self, Interaction:DiscordInteraction):
+		Self.Fighter = Self.ChallengerFightersSelect.values[0]
+		await Self.Send_Panel(Interaction, Edit=True)
+		
 
-	async def Set(Self, Interaction, Fighter:str=None, OpponentFighter:str=None, Wager:int=None):
-		if Fighter:Self.Fighter = Fighter
-		elif OpponentFighter: Self.OpponentFighter = OpponentFighter
-		elif Wager: Self.Wager = Wager
+	async def Set_Opponent_Fighter(Self, Interaction:DiscordInteraction):
+		Self.Fighter = Self.OpponentFightersSelect.values[0]
 		await Self.Send_Panel(Interaction, Edit=True)
 
 
 	async def Confirm_Fight(Self, Interaction:DiscordInteraction):
 		if Interaction.user.id != Self.User.id: return
-		Self.View = View(timeout=30)
+		await Self.Referesh_Panel()
 		Self.Embed = Embed(title="Challenge Sent")
 		Data = [Self.Fighter, Self.OpponentFighter, Self.Wager]
 		Self.ME.Save_New_Challenge(Self.User, Self.Opponent, Data)

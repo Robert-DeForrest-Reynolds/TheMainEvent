@@ -4,21 +4,18 @@ if TYPE_CHECKING:
 	from Bots.MainEvent.__main__ import MainEvent
 
 from discord import Interaction as DiscordInteraction
-from discord import Member as DiscordMember
 from discord import Embed, SelectOption, ButtonStyle
-from discord import Message as DiscordMessage
-from discord.ui import Button, Modal, Select, TextInput, View
+from discord.ui import Button, Modal, Select, TextInput
 from asyncio import create_task, sleep
+from Library.Panel import Panel
 
 # This needs to be moved later
 FighterValue = 300
 
-class Fighters:
+class Fighters(Panel):
 	def __init__(Self, Interaction:DiscordInteraction, MEReference:MainEvent) -> None:
+		super().__init__(Interaction.user, MEReference.Bot)
 		Self.ME = MEReference
-		Self.User = Interaction.user
-		Self.View = None
-		Self.Embed = None
 		Self.Fighters:dict = None
 		Self.Challenges:dict = None
 		Self.OpposingChallenges:dict = None
@@ -26,50 +23,50 @@ class Fighters:
 		Self.SelectedChallenge = None
 		Self.SelectedOpposingChallenge = None
 		Self.OriginInteraction = Interaction
-		create_task(Self.Send_Panel(Interaction))
+		Self.ViewTimeout = 60 * 3
+		Self.InvalidName = None
+		Self.Task = create_task(Self.Send_Panel(Interaction))
 
 
-	async def Send_Panel(Self, Interaction:DiscordInteraction, FollowUp=False,
-					  	 SelectedFighter:str=None, InvalidName:str|None=None, SelectedChallenge:str=None,
-						 SelectedOpposingChallenge:str=None):
+	async def Send_Panel(Self, Interaction:DiscordInteraction, FollowUp=False):
 		if Interaction.user.id != Self.User.id: return
-		Self.View = View(timeout=60*5)
+		await Self.Referesh_Panel()
 		Self.Embed = Embed(title=f"{Interaction.user}'s Fighter's")
-		Self.Funds = Self.ME.Bot.Get_Wallet(Self.User)
+		Self.Funds = Self.Bot.Get_Wallet(Self.User)
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
-		if InvalidName:
-			Self.Embed.add_field(name="Error:", value=f"`{InvalidName}` already exists", inline=False)
+		if Self.InvalidName:
+			Self.Embed.add_field(name="Error:", value=f"`{Self.InvalidName}` already exists", inline=False)
 
 		BuyButton = Button(label="Buy Fighter", style=ButtonStyle.green, row=3)
 		BuyButton.callback = Self.Check_Funds
 		Self.View.add_item(BuyButton)
 
-		if SelectedFighter:
-			Self.SelectedFighter = SelectedFighter
+		if Self.SelectedFighter:
+			Self.SelectedFighter = Self.SelectedFighter
 			Self.Stats = Self.Fighters[Self.SelectedFighter]
 			Details = f"Level: {Self.Stats["Level"]}\n"
 			Details += f"Health: {Self.Stats["Health"]}\n"
 			Details += f"Power: {Self.Stats["Power"]}\n"
 			Details += f"Defense: {Self.Stats["Defense"]}\n"
-			Self.Embed.add_field(name=SelectedFighter, value=Details, inline=False)
+			Self.Embed.add_field(name=Self.SelectedFighter, value=Details, inline=False)
 
 			SellButton = Button(label="Sell Fighter", style=ButtonStyle.green, row=3)
 			SellButton.callback = Self.Sell_Fighter
 			Self.View.add_item(SellButton)
 
-		if SelectedChallenge:
+		if Self.SelectedChallenge:
 			Self.Embed.add_field(name=f"**Challenge Details:**", value="", inline=False)
 
-			Self.SelectedChallenge = Self.Challenges[SelectedChallenge]
+			Self.SelectedChallenge = Self.Challenges[Self.SelectedChallenge]
 			Self.SelectedOpposingChallenge = None
 
 			CancelButton = Button(label="Cancel Challenge", style=ButtonStyle.red, row=4)
 			CancelButton.callback = Self.Cancel_Challenge
 			Self.View.add_item(CancelButton)
-		elif SelectedOpposingChallenge:
+		elif Self.SelectedOpposingChallenge:
 			Self.Embed.add_field(name=f"**Challenge Details:**", value="", inline=False)
 
-			Self.SelectedOpposingChallenge = Self.OpposingChallenges[SelectedOpposingChallenge]
+			Self.SelectedOpposingChallenge = Self.OpposingChallenges[Self.SelectedOpposingChallenge]
 			Self.SelectedChallenge = None
 
 			AcceptButton = Button(label="Accept Challenge", style=ButtonStyle.green, row=4)
@@ -80,11 +77,9 @@ class Fighters:
 			RejectButton.callback = Self.Reject_Challenge
 			Self.View.add_item(RejectButton)
 			
-
 		Self.Build_Fighter_Select()
 		Self.Build_Challenge_Select()
 		Self.Build_Opposing_Challenge_Select()
-
 		if FollowUp:
 			await Interaction.followup.edit_message(message_id=Interaction.message.id, view=Self.View, embed=Self.Embed)
 		else:
@@ -99,7 +94,7 @@ class Fighters:
 			Self.Embed.add_field(name="You already possess maximum fighters (25)", value="", inline=False)
 			await Interaction.response.edit_message(view=Self.View, embed=Self.Embed)
 			return
-		Self.Funds = Self.ME.Bot.Get_Wallet(Self.User)
+		Self.Funds = Self.Bot.Get_Wallet(Self.User)
 		if FighterValue > Self.Funds:
 			Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 			Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
@@ -109,13 +104,28 @@ class Fighters:
 			await Self.Get_Name_Modal(Interaction)
 
 
+	async def Select_Fighter(Self, Interaction:DiscordInteraction):
+		Self.SelectedFighter = Self.FightersSelect.values[0]
+		await Self.Send_Panel(Interaction)
+
+
+	async def Select_Challenge(Self, Interaction:DiscordInteraction):
+		Self.SelectedChallenge = Self.ChallengesSelect.values[0]
+		await Self.Send_Panel(Interaction)
+
+
+	async def Select_Opposing_Challenge(Self, Interaction:DiscordInteraction):
+		Self.SelectedOpposingChallenge = Self.OpposingChallengesSelect.values[0]
+		await Self.Send_Panel(Interaction)
+
+
 	def Build_Fighter_Select(Self):
 		Self.Fighters = Self.ME.Get_Fighters(Self.User)
 		if len(Self.Fighters) > 0:
 			Options = [SelectOption(label=F["Name"]) for F in Self.Fighters.values()]
 
 			Self.FightersSelect = Select(placeholder="Select Fighter...", options=Options, row=0)
-			Self.FightersSelect.callback = lambda Interaction: Self.Send_Panel(Interaction, SelectedFighter=Self.FightersSelect.values[0])
+			Self.FightersSelect.callback = Self.Select_Fighter
 			Self.View.add_item(Self.FightersSelect)
 
 
@@ -129,7 +139,7 @@ class Fighters:
 				Self.ChallengesSelect.placeholder = Self.SelectedChallenge['Challengee'].name
 			else:
 				Self.ChallengesSelect.placeholder = "Your pending challenges..."
-			Self.ChallengesSelect.callback = lambda Interaction: Self.Send_Panel(Interaction, SelectedChallenge=Self.ChallengesSelect.values[0])
+			Self.ChallengesSelect.callback = Self.Select_Challenge
 			Self.View.add_item(Self.ChallengesSelect)
 
 
@@ -143,7 +153,7 @@ class Fighters:
 				Self.OpposingChallengesSelect.placeholder = Self.SelectedOpposingChallenge['Challenger'].name
 			else:
 				Self.OpposingChallengesSelect.placeholder = "You have opposing challenges..."
-			Self.OpposingChallengesSelect.callback = lambda Interaction: Self.Send_Panel(Interaction, SelectedOpposingChallenge=Self.OpposingChallengesSelect.values[0])
+			Self.OpposingChallengesSelect.callback = Self.Select_Opposing_Challenge
 			Self.View.add_item(Self.OpposingChallengesSelect)
 
 	
@@ -161,38 +171,38 @@ class Fighters:
 			return True
 
 
-	async def Validate_Name(Self, Interaction:DiscordInteraction, Name:str):
+	async def Validate_Name(Self, Interaction:DiscordInteraction):
 		Cursor = Self.ME.DB.cursor()
 		Cursor.execute(
 			"SELECT 1 FROM Fighters WHERE Name = ? LIMIT 1",
-			(Name,)
+			(Self.FighterNameSubmission.value,)
 		)
 		Exists = Cursor.fetchone() is not None
 		if not Exists:
-			await Self.Purchase_Fighter(Interaction, Name)
+			await Self.Purchase_Fighter(Interaction, Self.FighterNameSubmission.value)
 		else:
-			await Self.Send_Panel(Interaction, InvalidName=Name)
+			Self.InvalidName = Self.FighterNameSubmission.value
+			await Self.Send_Panel(Interaction)
 
 
 	async def Get_Name_Modal(Self, Interaction:DiscordInteraction):
-		NameModal = Modal(title="What is your fighter's name?", timeout=60*5)
+		NameModal = Modal(title="What is your fighter's name?", timeout=Self.ViewTimeout)
 
-		Name = TextInput(label="Name")
-		NameModal.add_item(Name)
+		Self.FighterNameSubmission = TextInput(label="Name")
+		NameModal.add_item(Self.FighterNameSubmission)
 
-		NameModal.on_submit = lambda Interaction: Self.Validate_Name(Interaction, Name.value)
+		NameModal.on_submit = Self.Validate_Name
 
 		await Interaction.response.send_modal(NameModal)
 
 
 	async def Purchase_Fighter(Self, Interaction:DiscordInteraction, Name:str):
 		Self.Funds -= FighterValue
-		Self.ME.Bot.Transact(Self.User, Self.Funds)
-		Self.Funds = Self.ME.Bot.Get_Wallet(Self.User)
+		Self.Bot.Transact(Self.User, Self.Funds)
+		Self.Funds = Self.Bot.Get_Wallet(Self.User)
 		
-		Self.ME.Bot.Send(f"{Self.User} purchased a fighter")
+		Self.Bot.Send(f"{Self.User} purchased a fighter")
 		
-		Self.View = View(timeout=60*5)
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 		Self.Embed.add_field(name="Purchased Fighter:", value=Name, inline=False)
@@ -212,12 +222,11 @@ class Fighters:
 
 		Self.ME.Delete_Fighter(Self.SelectedFighter)
 
-		Self.ME.Bot.Apply_Wallet(Self.User, Self.Funds + FighterValue)
+		Self.Bot.Apply_Wallet(Self.User, Self.Funds + FighterValue)
 
-		Self.ME.Bot.Send(f"{Self.User} sold {Self.SelectedFighter}")
+		Self.Bot.Send(f"{Self.User} sold {Self.SelectedFighter}")
 		
-		Self.Funds = Self.ME.Bot.Get_Wallet(Self.User)
-		Self.View = View(timeout=60*5)
+		Self.Funds = Self.Bot.Get_Wallet(Self.User)
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 		Self.Embed.add_field(name=f"Sold {Self.SelectedFighter} for {FighterValue}", value="", inline=False)
@@ -234,7 +243,7 @@ class Fighters:
 
 	async def Accept_Challenge(Self, Interaction:DiscordInteraction):
 		if Interaction.user.id != Self.User.id: return
-		Self.View = View(timeout=60*5)
+		await Self.Referesh_Panel()
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Accepted Challenge", value=f"Fight will start in the <#{Self.ME.Channels["Pit"].id}> soon!", inline=False)
 
@@ -250,7 +259,7 @@ class Fighters:
 
 	async def Reject_Challenge(Self, Interaction:DiscordInteraction):
 		if Interaction.user.id != Self.User.id: return
-		Self.View = View(timeout=60*5)
+		await Self.Referesh_Panel()
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Rejected Challenge", value="", inline=False)
 
@@ -268,7 +277,7 @@ class Fighters:
 
 	async def Cancel_Challenge(Self, Interaction:DiscordInteraction):
 		if Interaction.user.id != Self.User.id: return
-		Self.View = View(timeout=60*5)
+		await Self.Referesh_Panel()
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Canceled Challenge", value="", inline=False)
 
