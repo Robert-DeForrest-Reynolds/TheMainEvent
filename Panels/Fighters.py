@@ -94,7 +94,7 @@ class Fighters:
 
 	async def Check_Funds(Self, Interaction:DiscordInteraction):
 		if Interaction.user.id != Self.User.id: return
-		if not Self.Check_Fighters():
+		if not Self.Check_Fighters_Count():
 			Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 			Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 			Self.Embed.add_field(name="You already possess maximum fighters (25)", value="", inline=False)
@@ -148,7 +148,7 @@ class Fighters:
 			Self.View.add_item(Self.OpposingChallengesSelect)
 
 	
-	def Check_Fighters(Self) -> bool:
+	def Check_Fighters_Count(Self) -> bool:
 		Cursor = Self.ME.DB.cursor()
 		Cursor.execute(
 			"SELECT COUNT(*) FROM Fighters WHERE OwnerID = ?",
@@ -212,7 +212,7 @@ class Fighters:
 	async def Sell_Fighter(Self, Interaction:DiscordInteraction):
 		if Interaction.user.id != Self.User.id: return
 
-		Self.ME.Delete_Fighter(Self.User, Self.SelectedFighter)
+		Self.ME.Delete_Fighter(Self.SelectedFighter)
 
 		Self.ME.Bot.Apply_Wallet(Self.User, Self.Funds + FighterValue)
 

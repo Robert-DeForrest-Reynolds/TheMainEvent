@@ -111,7 +111,7 @@ class MainEvent:
 
 
 	def Get_Fighters(Self, Member:DiscordMember):
-		Self.DBCursor.execute("SELECT ID, Name, Level, Health, Power, Defense FROM Fighters WHERE OwnerID=?", (Member.id,))
+		Self.DBCursor.execute("SELECT ID, Name, Level, Experience, Health, Power, Defense, CreatedAt FROM Fighters WHERE OwnerID=?", (Member.id,))
 		Data = Self.DBCursor.fetchall()
 		Fighters = {Name:{"ID":ID, "Name":Name, "Level":Level, "Experience":Experience, "Health":Health, "Power":Power, "Defense":Defense, "Created At":CreatedAt}
 			  		for ID, Name, Level, Experience, Health, Power, Defense, CreatedAt in Data}
@@ -125,13 +125,7 @@ class MainEvent:
 		return F
 	
 
-	def Delete_Fighter(Self, Member, FighterName:str):
-		Self.Bot.Send(FighterName)
-
-		Data = Self.Bot.Get_Player_Data(Member)
-		Self.Bot.DesmondDB.cursor().execute("UPDATE Players SET FighterCount=? WHERE ID=?", (Data["Fighter Count"]-1, Member.id))
-		Self.Bot.DesmondDB.commit()
-
+	def Delete_Fighter(Self, FighterName:str):
 		Self.DBCursor.execute(
 			"DELETE FROM Fighters WHERE Name=?",
 			(FighterName,)
@@ -140,11 +134,6 @@ class MainEvent:
 
 
 	def Save_New_Fighter(Self, Member:DiscordMember, F:Fighter):
-		Data = Self.Bot.Get_Player_Data(Member)
-
-		Self.Bot.DesmondDB.cursor().execute("UPDATE Players SET FighterCount=? WHERE ID=?", (Data["Fighter Count"]+1, Member.id))
-		Self.Bot.DesmondDB.commit()
-
 		Self.DBCursor.execute("INSERT OR IGNORE INTO Fighters (OwnerID, Name, Health, Power, Defense) VALUES (?,?,?,?,?)",
 							  (Member.id, F.Name, F.Health, F.Power, F.Defense))
 		Self.DB.commit()
