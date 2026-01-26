@@ -2,6 +2,7 @@ from sys import exit
 if __name__ != "__main__": exit()
 
 from discord import Interaction, Member
+from discord import Game as DiscordGame
 
 from Library.EverburnBot import EverburnBot
 from Bots.MainEvent import MainEvent
@@ -21,6 +22,8 @@ async def Setup() -> None:
 						"Arena":MainEventBot.Bot.get_channel(1462615216733818943),
 						"Challenges":MainEventBot.Bot.get_channel(1464681901775392768)})
 	ME.Pit = Pit(ME)
+	await MainEventBot.Bot.change_presence(activity=DiscordGame(f'/fighters'), status="Tending the fights.")
+
 
 
 @MainEventBot.Bot.tree.command(name="challenge", description="Challenge another player to a fight")
