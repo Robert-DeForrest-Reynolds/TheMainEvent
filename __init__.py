@@ -6,9 +6,9 @@ from discord.abc import GuildChannel
 from discord import ForumChannel
 
 from Library.EverburnBot import EverburnBot
-from Bots.MainEvent.Pit import Pit
+from Bots.Crucible.Pit import Pit
 
-class MainEvent:
+class Crucible:
 	def __init__(Self, Bot:EverburnBot):
 		Self.Forums:dict[str:ForumChannel] = {}
 		Self.Channels:dict[str:GuildChannel] = {}
@@ -18,23 +18,23 @@ class MainEvent:
 		Self.Bot:EverburnBot = Bot
 		Self.Pit:Pit = None
 
-		with open(join("Bots", "MainEvent", "Data", "Weapons.txt"), 'r') as File:
+		with open(join("Bots", "Crucible", "Data", "Weapons.txt"), 'r') as File:
 			Lines = File.readlines()
 			for Line in Lines:
 				Self.Weapons.append(Line.strip())
 
-		with open(join("Bots", "MainEvent", "Data", "AttackMoves.txt"), 'r') as File:
+		with open(join("Bots", "Crucible", "Data", "AttackMoves.txt"), 'r') as File:
 			Lines = File.readlines()
 			for Line in Lines:
 				Self.AttackMoves.append(Line.strip())
 
-		with open(join("Bots", "MainEvent", "Data", "DefensiveMoves.txt"), 'r') as File:
+		with open(join("Bots", "Crucible", "Data", "DefensiveMoves.txt"), 'r') as File:
 			Lines = File.readlines()
 			for Line in Lines:
 				Self.DefensiveMoves.append(Line.strip())
 
 
-		Self.DB = connect(join("Data", "MainEvent.db"))
+		Self.DB = connect(join("Data", "Crucible.db"))
 
 		Self.DBCursor = Self.DB.cursor()
 		

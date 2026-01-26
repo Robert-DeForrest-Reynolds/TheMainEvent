@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-	from Bots.MainEvent.__main__ import MainEvent
+	from Bots.Crucible.__main__ import Crucible
 
 from discord import Interaction as DiscordInteraction
 from discord import Embed, SelectOption, ButtonStyle
@@ -13,9 +13,9 @@ from Library.Panel import Panel
 FighterValue = 300
 
 class Fighters(Panel):
-	def __init__(Self, Interaction:DiscordInteraction, MEReference:MainEvent) -> None:
-		super().__init__(Interaction.user, MEReference.Bot)
-		Self.ME = MEReference
+	def __init__(Self, Interaction:DiscordInteraction, CrucibleReference:Crucible) -> None:
+		super().__init__(Interaction.user, CrucibleReference.Bot)
+		Self.Crucible = CrucibleReference
 		Self.Fighters:dict = None
 		Self.Challenges:dict = None
 		Self.OpposingChallenges:dict = None
@@ -120,7 +120,7 @@ class Fighters(Panel):
 
 
 	def Build_Fighter_Select(Self):
-		Self.Fighters = Self.ME.Get_Fighters(Self.User)
+		Self.Fighters = Self.Crucible.Get_Fighters(Self.User)
 		if len(Self.Fighters) > 0:
 			Options = [SelectOption(label=F["Name"]) for F in Self.Fighters.values()]
 
@@ -130,7 +130,7 @@ class Fighters(Panel):
 
 
 	def Build_Challenge_Select(Self):
-		Self.Challenges = Self.ME.Get_Challenges(Self.User)
+		Self.Challenges = Self.Crucible.Get_Challenges(Self.User)
 		if len(Self.Challenges) > 0:
 			Options = [SelectOption(label=f'{C["Challengee"].name}') for C in Self.Challenges.values()]
 
@@ -144,7 +144,7 @@ class Fighters(Panel):
 
 
 	def Build_Opposing_Challenge_Select(Self):
-		Self.OpposingChallenges = Self.ME.Get_Opposing_Challenges(Self.User)
+		Self.OpposingChallenges = Self.Crucible.Get_Opposing_Challenges(Self.User)
 		if len(Self.OpposingChallenges) > 0:
 			Options = [SelectOption(label=f'{C["Challenger"].name}') for C in Self.OpposingChallenges.values()]
 
@@ -158,7 +158,7 @@ class Fighters(Panel):
 
 	
 	def Check_Fighters_Count(Self) -> bool:
-		Cursor = Self.ME.DB.cursor()
+		Cursor = Self.Crucible.DB.cursor()
 		Cursor.execute(
 			"SELECT COUNT(*) FROM Fighters WHERE OwnerID = ?",
 			(Self.User.id,)
@@ -172,7 +172,7 @@ class Fighters(Panel):
 
 
 	async def Validate_Name(Self, Interaction:DiscordInteraction):
-		Cursor = Self.ME.DB.cursor()
+		Cursor = Self.Crucible.DB.cursor()
 		Cursor.execute(
 			"SELECT 1 FROM Fighters WHERE Name = ? LIMIT 1",
 			(Self.FighterNameSubmission.value,)
@@ -207,7 +207,7 @@ class Fighters(Panel):
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 		Self.Embed.add_field(name="Purchased Fighter:", value=Name, inline=False)
 		
-		Self.ME.Save_New_Fighter(Self.User, Name)
+		Self.Crucible.Save_New_Fighter(Self.User, Name)
 		
 		await Interaction.response.defer()
 		await Interaction.followup.edit_message(message_id=Interaction.message.id ,view=Self.View, embed=Self.Embed)
@@ -220,7 +220,7 @@ class Fighters(Panel):
 	async def Sell_Fighter(Self, Interaction:DiscordInteraction):
 		if Interaction.user.id != Self.User.id: return
 
-		Self.ME.Delete_Fighter(Self.SelectedFighter)
+		Self.Crucible.Delete_Fighter(Self.SelectedFighter)
 
 		Self.Bot.Apply_Wallet(Self.User, Self.Funds + FighterValue)
 
@@ -245,9 +245,9 @@ class Fighters(Panel):
 		if Interaction.user.id != Self.User.id: return
 		await Self.Referesh_Panel()
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
-		Self.Embed.add_field(name=f"Accepted Challenge", value=f"Fight will start in the <#{Self.ME.Channels["Pit"].id}> soon!", inline=False)
+		Self.Embed.add_field(name=f"Accepted Challenge", value=f"Fight will start in the <#{Self.Crucible.Channels["Pit"].id}> soon!", inline=False)
 
-		Self.ME.Pit.Fights.append(Self.SelectedOpposingChallenge)
+		Self.Crucible.Pit.Fights.append(Self.SelectedOpposingChallenge)
 
 		await Interaction.response.defer()
 		await Interaction.followup.edit_message(message_id=Interaction.message.id ,view=Self.View, embed=Self.Embed)
@@ -263,7 +263,7 @@ class Fighters(Panel):
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Rejected Challenge", value="", inline=False)
 
-		Self.ME.Delete_Challenge(Self.SelectedOpposingChallenge["ID"])
+		Self.Crucible.Delete_Challenge(Self.SelectedOpposingChallenge["ID"])
 		Self.SelectedOpposingChallenge = None
 
 		await Interaction.response.defer()
@@ -281,7 +281,7 @@ class Fighters(Panel):
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Canceled Challenge", value="", inline=False)
 
-		Self.ME.Delete_Challenge(Self.SelectedChallenge["ID"])
+		Self.Crucible.Delete_Challenge(Self.SelectedChallenge["ID"])
 		Self.SelectedChallenge = None
 
 		await Interaction.response.defer()

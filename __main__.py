@@ -5,50 +5,50 @@ from discord import Interaction, Member
 from discord import Game as DiscordGame
 
 from Library.EverburnBot import EverburnBot
-from Bots.MainEvent import MainEvent
-from Bots.MainEvent.Panels.Challenge import Challenge
-from Bots.MainEvent.Pit import Pit
-from Bots.MainEvent.Panels.Fighters import Fighters
+from Bots.Crucible import Crucible
+from Bots.Crucible.Panels.Challenge import Challenge
+from Bots.Crucible.Pit import Pit
+from Bots.Crucible.Panels.Fighters import Fighters
 
 
-MainEventBot:EverburnBot = EverburnBot()
-ME = MainEvent(MainEventBot)
+CrucibleBot:EverburnBot = EverburnBot()
+C = Crucible(CrucibleBot)
 
 
 async def Setup() -> None:
-	MainEventBot.Send("Post setup")
-	ME.Channels.update({"Lounge":MainEventBot.Bot.get_channel(1462614581678706739),
-						"Pit":MainEventBot.Bot.get_channel(1462614973741137953),
-						"Arena":MainEventBot.Bot.get_channel(1462615216733818943),
-						"Challenges":MainEventBot.Bot.get_channel(1464681901775392768)})
-	ME.Pit = Pit(ME)
-	await MainEventBot.Bot.change_presence(activity=DiscordGame(f'/fighters'), status="Tending the fights.")
+	CrucibleBot.Send("Post setup")
+	C.Channels.update({"Lounge":CrucibleBot.Bot.get_channel(1462614581678706739),
+						"Pit":CrucibleBot.Bot.get_channel(1462614973741137953),
+						"Arena":CrucibleBot.Bot.get_channel(1462615216733818943),
+						"Challenges":CrucibleBot.Bot.get_channel(1464681901775392768)})
+	C.Pit = Pit(C)
+	await CrucibleBot.Bot.change_presence(activity=DiscordGame(f'/fighters'), status="Tending the fights.")
 
 
 
-@MainEventBot.Bot.tree.command(name="challenge", description="Challenge another player to a fight")
+@CrucibleBot.Bot.tree.command(name="challenge", description="Challenge another player to a fight")
 async def challenge(Interaction:Interaction, challengee:Member, wager:float):
-	Challenge(Interaction, challengee, wager, ME)
+	Challenge(Interaction, challengee, wager, C)
 
 
-@MainEventBot.Bot.tree.command(name="arena", description="Invoke Main Event's Arena (Admin Only)")
+@CrucibleBot.Bot.tree.command(name="arena", description="Invoke Main Event's Arena (Admin Only)")
 async def arena(Interaction:Interaction, action:str):
-	if Interaction.user.id not in MainEventBot.Admins: return
+	if Interaction.user.id not in CrucibleBot.Admins: return
 	if action == "begin":
 		await Interaction.response.send_message("Beginning arena tournament!", ephemeral=True)
 	else:
 		await Interaction.response.send_message("Invalid action", ephemeral=True, delete_after=5)
 
 
-@MainEventBot.Bot.tree.command(name="fighters", description="Manage your Main Event fighters")
+@CrucibleBot.Bot.tree.command(name="fighters", description="Manage your Main Event fighters")
 async def fighters(Interaction:Interaction):
-	Fighters(Interaction, ME)
+	Fighters(Interaction, C)
 
 
-MainEventBot.Setup = Setup
+CrucibleBot.Setup = Setup
 
-MainEventBot.Bot.run(MainEventBot.Token)
-ME.Pit.Alive = False
-MainEventBot.Send("stopped")
-ME.DB.close()
+CrucibleBot.Bot.run(CrucibleBot.Token)
+C.Pit.Alive = False
+CrucibleBot.Send("stopped")
+C.DB.close()
 exit()

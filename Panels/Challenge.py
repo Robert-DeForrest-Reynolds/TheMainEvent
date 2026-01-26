@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-	from Bots.MainEvent.__main__ import MainEvent
+	from Bots.Crucible.__main__ import Crucible
 
 from discord import Interaction as DiscordInteraction
 from discord import Member as DiscordMember
@@ -12,9 +12,9 @@ from asyncio import create_task
 
 
 class Challenge(Panel):
-	def __init__(Self, Interaction:DiscordInteraction, Opponent:DiscordMember, Wager:float, MEReference:MainEvent) -> None:
-		super().__init__(Interaction.user, MEReference.Bot)
-		Self.ME = MEReference
+	def __init__(Self, Interaction:DiscordInteraction, Opponent:DiscordMember, Wager:float, CrucibleReference:Crucible) -> None:
+		super().__init__(Interaction.user, CrucibleReference.Bot)
+		Self.Crucible = CrucibleReference
 		Self.Opponent = Opponent
 		Self.Fighters:dict = None
 		Self.Fighter = None
@@ -31,8 +31,8 @@ class Challenge(Panel):
 		
 		Self.Funds = Self.Bot.Get_Wallet(Interaction.user)
 
-		ChallengerFighters = Self.ME.Get_Fighters(Interaction.user)
-		Opponentfighters = Self.ME.Get_Fighters(Self.Opponent)
+		ChallengerFighters = Self.Crucible.Get_Fighters(Interaction.user)
+		Opponentfighters = Self.Crucible.Get_Fighters(Self.Opponent)
 
 		if not Self.Check_Challenges(Self.User):
 			Self.Embed.add_field(name="Challenge Error:", value="You have max challenges already (25).")
@@ -95,11 +95,11 @@ class Challenge(Panel):
 
 	
 	def Check_Challenges(Self, Member:DiscordMember) -> bool:
-		Self.ME.DBCursor.execute(
+		Self.Crucible.DBCursor.execute(
 			"SELECT COUNT(*) FROM Challenges WHERE ChallengerID = ? OR ChallengeeID = ?",
 			(Member.id, Member.id)
 		)
-		ChallengeCount = Self.ME.DBCursor.fetchone()[0]
+		ChallengeCount = Self.Crucible.DBCursor.fetchone()[0]
 		if ChallengeCount >= 25:
 			return False
 		else:
@@ -121,10 +121,10 @@ class Challenge(Panel):
 		await Self.Referesh_Panel()
 		Self.Embed = Embed(title="Challenge Sent")
 		Data = [Self.Fighter, Self.OpponentFighter, Self.Wager]
-		Self.ME.Save_New_Challenge(Self.User, Self.Opponent, Data)
+		Self.Crucible.Save_New_Challenge(Self.User, Self.Opponent, Data)
 		Self.Embed.add_field(name="Challenge:", value=f"**{Self.Fighter}** vs. **{Self.OpponentFighter}** for **${Self.Wager:,.2f}**")
 		await Interaction.response.edit_message(view=Self.View, embed=Self.Embed)
-		ChallengesChannel:TextChannel = Self.ME.Channels["Challenges"]
+		ChallengesChannel:TextChannel = Self.Crucible.Channels["Challenges"]
 		ChallengeEmbed = Embed(title=f"{Self.User.name} has challenged {Self.Opponent.name}")
 		ChallengeEmbed.add_field(name=f"**{Self.Fighter}** vs. **{Self.OpponentFighter}** for ${Self.Wager:,.2f}\n", value="")
 		await ChallengesChannel.send(f"{Self.User.mention} ⚔️ {Self.Opponent.mention}\n",embed=ChallengeEmbed)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from Bots.MainEvent.__main__ import MainEvent
+    from Bots.Crucible.__main__ import Crucible
 
 from discord import Embed, ForumChannel
 from discord import Message as DiscordMessage
@@ -11,8 +11,8 @@ from random import randrange
 
 
 class Pit:
-    def __init__(Self, MEReference:MainEvent) -> None:
-        Self.ME = MEReference
+    def __init__(Self, CReference:Crucible) -> None:
+        Self.Crucible = CReference
         Self.Fights = []
         Self.Alive = True
         Self.CurrentFight = None
@@ -23,7 +23,7 @@ class Pit:
         while Self.Alive:
             if Self.CurrentFight == None and len(Self.Fights) > 0:
                 Self.CurrentFight = Self.Fights.pop(0)
-                Self.ME.Bot.Send(f"Fight starting! {Self.CurrentFight}")
+                Self.Crucible.Bot.Send(f"Fight starting! {Self.CurrentFight}")
                 await Self.Battle()
             await sleep(5)
 
@@ -51,13 +51,13 @@ class Pit:
     async def Battle(Self):
         BattleView = View(timeout=14400)
         
-        FighterOne = Self.ME.Get_Fighter(Self.CurrentFight["ChallengerFighter"])
-        FighterTwo = Self.ME.Get_Fighter(Self.CurrentFight["ChallengeeFighter"])
+        FighterOne = Self.Crucible.Get_Fighter(Self.CurrentFight["ChallengerFighter"])
+        FighterTwo = Self.Crucible.Get_Fighter(Self.CurrentFight["ChallengeeFighter"])
         BattleEmbed = Embed(title=f"⚔️ {FighterOne["Name"]} versus {FighterTwo["Name"]} ⚔️")
 
         await Self.Construct_Description(BattleEmbed, FighterOne, FighterTwo)
 
-        PitChannel:ForumChannel = Self.ME.Channels["Pit"]
+        PitChannel:ForumChannel = Self.Crucible.Channels["Pit"]
         Thread = await PitChannel.create_thread(name=f"{FighterOne["Name"]} vs. {FighterTwo["Name"]}",
                                                 content="Welcome to the pit!",
                                                 view=BattleView,
@@ -71,11 +71,11 @@ class Pit:
             FighterOneRoll = randrange(FighterOne["Power"]//4, FighterOne["Power"]+1)
             FighterOneDamage = FighterOneRoll
 
-            FighterTwoWeapon = Self.ME.Weapons[randrange(0, len(Self.ME.Weapons))]
-            FighterOneAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
+            FighterTwoWeapon = Self.Crucible.Weapons[randrange(0, len(Self.Crucible.Weapons))]
+            FighterOneAttackMove = Self.Crucible.AttackMoves[randrange(0, len(Self.Crucible.AttackMoves))]
 
             FighterTwoDefense = randrange(FighterTwo["Defense"]//4, FighterTwo["Defense"]+1)
-            FighterTwoDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
+            FighterTwoDefensiveMove = Self.Crucible.DefensiveMoves[randrange(0, len(Self.Crucible.DefensiveMoves))]
 
             if FighterOneDamage - FighterTwoDefense < FighterOne["Power"]//4: FighterOneDamage = FighterOne["Power"]//4
             else: FighterOneDamage -= FighterTwoDefense
@@ -99,11 +99,11 @@ class Pit:
             FighterTwoRoll = randrange(FighterTwo["Power"]//4, FighterTwo["Power"]+1)
             FighterTwoDamage = FighterTwoRoll
 
-            FighterTwoWeapon = Self.ME.Weapons[randrange(0, len(Self.ME.Weapons))]
-            FighterTwoAttackMove = Self.ME.AttackMoves[randrange(0, len(Self.ME.AttackMoves))]
+            FighterTwoWeapon = Self.Crucible.Weapons[randrange(0, len(Self.Crucible.Weapons))]
+            FighterTwoAttackMove = Self.Crucible.AttackMoves[randrange(0, len(Self.Crucible.AttackMoves))]
 
             FighterOneDefense = randrange(FighterOne["Defense"]//4, FighterOne["Defense"]+1)
-            FighterOneDefensiveMove = Self.ME.DefensiveMoves[randrange(0, len(Self.ME.DefensiveMoves))]
+            FighterOneDefensiveMove = Self.Crucible.DefensiveMoves[randrange(0, len(Self.Crucible.DefensiveMoves))]
 
             if FighterTwoDamage - FighterOneDefense < FighterTwo["Power"]//4: FighterTwoDamage = FighterTwo["Power"]//4
             else: FighterTwoDamage -= FighterOneDefense
@@ -144,8 +144,8 @@ class Pit:
                                         inline=False)
             Details = f"(Coming soon)"
             BattleEmbed.add_field(name="**Fight Details**", value=Details)
-            Self.ME.Bot.Add_To_Wallet(WinningMember, Self.CurrentFight["Wager"])
-            Self.ME.Bot.Subject_From_Wallet(LosingMember, Self.CurrentFight["Wager"])
-            Self.ME.Delete_Challenge(Self.CurrentFight["ID"])
+            Self.Crucible.Bot.Add_To_Wallet(WinningMember, Self.CurrentFight["Wager"])
+            Self.Crucible.Bot.Subject_From_Wallet(LosingMember, Self.CurrentFight["Wager"])
+            Self.Crucible.Delete_Challenge(Self.CurrentFight["ID"])
             Self.CurrentFight = None
             await Message.edit(embed=BattleEmbed)
