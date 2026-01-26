@@ -132,7 +132,7 @@ class Fighters(Panel):
 
 			Self.ChallengesSelect = Select(options=Options, row=1)
 			if Self.SelectedChallenge:
-				Self.ChallengesSelect.placeholder = Self.SelectedChallenge['Challengee'].name
+				Self.ChallengesSelect.placeholder = Self.Challenges[Self.SelectedChallenge]['Challengee'].name
 			else:
 				Self.ChallengesSelect.placeholder = "Your pending challenges..."
 			Self.ChallengesSelect.callback = Self.Select_Challenge
@@ -146,7 +146,7 @@ class Fighters(Panel):
 
 			Self.OpposingChallengesSelect = Select(options=Options, row=2)
 			if Self.SelectedOpposingChallenge:
-				Self.OpposingChallengesSelect.placeholder = Self.SelectedOpposingChallenge['Challenger'].name
+				Self.OpposingChallengesSelect.placeholder = Self.OpposingChallenges[Self.SelectedOpposingChallenge]['Challenger'].name
 			else:
 				Self.OpposingChallengesSelect.placeholder = "You have opposing challenges..."
 			Self.OpposingChallengesSelect.callback = Self.Select_Opposing_Challenge
