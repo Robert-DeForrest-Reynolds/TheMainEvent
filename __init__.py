@@ -6,7 +6,6 @@ from discord.abc import GuildChannel
 from discord import ForumChannel
 
 from Library.EverburnBot import EverburnBot
-from Bots.MainEvent.Entities.Fighter import Fighter
 from Bots.MainEvent.Pit import Pit
 
 class MainEvent:
@@ -118,11 +117,10 @@ class MainEvent:
 		return Fighters
 
 
-	def Get_Fighter(Self, FighterName:str) -> Fighter:
+	def Get_Fighter(Self, FighterName:str) -> list:
 		Self.DBCursor.execute("SELECT Health, Power, Defense FROM Fighters WHERE Name=?", (FighterName,))
 		FighterData = Self.DBCursor.fetchone()
-		F = Fighter(FighterName, FighterData[0],FighterData[1],FighterData[2])
-		return F
+		return {"Name":FighterName, "Health":FighterData[0],"Power":FighterData[1],"Defense":FighterData[2]}
 	
 
 	def Delete_Fighter(Self, FighterName:str):
@@ -133,9 +131,9 @@ class MainEvent:
 		Self.DB.commit()
 
 
-	def Save_New_Fighter(Self, Member:DiscordMember, F:Fighter):
+	def Save_New_Fighter(Self, Member:DiscordMember, FighterName):
 		Self.DBCursor.execute("INSERT OR IGNORE INTO Fighters (OwnerID, Name, Health, Power, Defense) VALUES (?,?,?,?,?)",
-							  (Member.id, F.Name, F.Health, F.Power, F.Defense))
+							  (Member.id, FighterName, 50, 50, 50))
 		Self.DB.commit()
 
 

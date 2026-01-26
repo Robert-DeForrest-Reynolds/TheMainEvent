@@ -8,7 +8,6 @@ from discord import Member as DiscordMember
 from discord import Embed, SelectOption, ButtonStyle, TextChannel
 from discord.ui import Button, Modal, Select, TextInput, View
 from asyncio import create_task
-from Bots.MainEvent.Entities.Fighter import Fighter
 
 
 class Challenge:

@@ -9,7 +9,6 @@ from discord import Embed, SelectOption, ButtonStyle
 from discord import Message as DiscordMessage
 from discord.ui import Button, Modal, Select, TextInput, View
 from asyncio import create_task, sleep
-from Bots.MainEvent.Entities.Fighter import Fighter
 
 # This needs to be moved later
 FighterValue = 300
@@ -198,8 +197,7 @@ class Fighters:
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 		Self.Embed.add_field(name="Purchased Fighter:", value=Name, inline=False)
 		
-		F = Fighter(Name)
-		Self.ME.Save_New_Fighter(Self.User, F)
+		Self.ME.Save_New_Fighter(Self.User, Name)
 		
 		await Interaction.response.defer()
 		await Interaction.followup.edit_message(message_id=Interaction.message.id ,view=Self.View, embed=Self.Embed)
