@@ -48,6 +48,7 @@ class MainEvent:
 			OwnerID     TEXT NOT NULL,
 			Name        TEXT NOT NULL UNIQUE,
 			Level       INTEGER DEFAULT 1,
+			Experience  INTEGER DEFAULT 0,
 			Health		INTEGER NOT NULL,
 			Power		INTEGER NOT NULL,
 			Defense		INTEGER NOT NULL,
@@ -110,10 +111,10 @@ class MainEvent:
 
 
 	def Get_Fighters(Self, Member:DiscordMember):
-		Self.DBCursor.execute("SELECT * FROM Fighters WHERE OwnerID=?", (Member.id,))
+		Self.DBCursor.execute("SELECT ID, Name, Level, Health, Power, Defense FROM Fighters WHERE OwnerID=?", (Member.id,))
 		Data = Self.DBCursor.fetchall()
-		Fighters = {Name:{"ID":ID, "Name":Name, "Level":Level, "Health":Health, "Power":Power, "Defense":Defense, "Created At":CreatedAt}
-			  		for ID, OwnerID, Name, Level, Health, Power, Defense, CreatedAt in Data}
+		Fighters = {Name:{"ID":ID, "Name":Name, "Level":Level, "Experience":Experience, "Health":Health, "Power":Power, "Defense":Defense, "Created At":CreatedAt}
+			  		for ID, Name, Level, Experience, Health, Power, Defense, CreatedAt in Data}
 		return Fighters
 
 
