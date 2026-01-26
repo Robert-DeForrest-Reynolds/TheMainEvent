@@ -20,8 +20,8 @@ class Fighters(Panel):
 		Self.Challenges:dict = None
 		Self.OpposingChallenges:dict = None
 		Self.SelectedFighter = None
-		Self.SelectedChallenge = None
-		Self.SelectedOpposingChallenge = None
+		Self.SelectedChallenge:str = None
+		Self.SelectedOpposingChallenge:str = None
 		Self.OriginInteraction = Interaction
 		Self.ViewTimeout = 60 * 3
 		Self.InvalidName = None
@@ -56,8 +56,6 @@ class Fighters(Panel):
 
 		if Self.SelectedChallenge:
 			Self.Embed.add_field(name=f"**Challenge Details:**", value="", inline=False)
-
-			Self.SelectedChallenge = Self.Challenges[Self.SelectedChallenge]
 			Self.SelectedOpposingChallenge = None
 
 			CancelButton = Button(label="Cancel Challenge", style=ButtonStyle.red, row=4)
@@ -65,8 +63,6 @@ class Fighters(Panel):
 			Self.View.add_item(CancelButton)
 		elif Self.SelectedOpposingChallenge:
 			Self.Embed.add_field(name=f"**Challenge Details:**", value="", inline=False)
-
-			Self.SelectedOpposingChallenge = Self.OpposingChallenges[Self.SelectedOpposingChallenge]
 			Self.SelectedChallenge = None
 
 			AcceptButton = Button(label="Accept Challenge", style=ButtonStyle.green, row=4)
@@ -247,7 +243,8 @@ class Fighters(Panel):
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Accepted Challenge", value=f"Fight will start in the <#{Self.Crucible.Channels["Pit"].id}> soon!", inline=False)
 
-		Self.Crucible.Pit.Fights.append(Self.SelectedOpposingChallenge)
+		Self.Crucible.Pit.Fights.append(Self.OpposingChallenges[Self.SelectedOpposingChallenge])
+		Self.SelectedOpposingChallenge = None
 
 		await Interaction.response.defer()
 		await Interaction.followup.edit_message(message_id=Interaction.message.id ,view=Self.View, embed=Self.Embed)
@@ -281,7 +278,7 @@ class Fighters(Panel):
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Canceled Challenge", value="", inline=False)
 
-		Self.Crucible.Delete_Challenge(Self.SelectedChallenge["ID"])
+		Self.Crucible.Delete_Challenge(Self.Challenges[Self.SelectedChallenge]["ID"])
 		Self.SelectedChallenge = None
 
 		await Interaction.response.defer()
