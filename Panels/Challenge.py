@@ -112,7 +112,7 @@ class Challenge(Panel):
 		
 
 	async def Set_Opponent_Fighter(Self, Interaction:DiscordInteraction):
-		Self.Fighter = Self.OpponentFightersSelect.values[0]
+		Self.OpponentFighter = Self.OpponentFightersSelect.values[0]
 		await Self.Send_Panel(Interaction, Edit=True)
 
 
