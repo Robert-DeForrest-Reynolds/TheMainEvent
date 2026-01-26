@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from Bots.MainEvent.__main__ import MainEvent
 
-from discord import Embed, ButtonStyle, ForumChannel, Thread
+from discord import Embed, ForumChannel
 from discord import Message as DiscordMessage
-from discord.ui import Button, Modal, Select, TextInput, View
+from discord.ui import View
 from asyncio import create_task, sleep
 from Bots.MainEvent.Entities.Fighter import Fighter
 from random import randrange
@@ -139,9 +139,12 @@ class Pit:
         if Winner != None:
             WinMessage = f"⚔️ {Winner.Name} has defeated {Loser.Name} with 💚{Winner.Health} remaining ⚔️"
             BattleEmbed = Embed(title=WinMessage)
-            BattleEmbed.add_field(name="", value=f"Wager has been added to your wallet {WinningMember.name}, and respectively the wager has been removed from your wallet {LosingMember.name}.")
+            BattleEmbed.add_field(name="",
+                                  value=f"{Self.CurrentFight["Wager"]} has been added to your wallet {WinningMember.name},"+
+                                        f" and respectively has been removed from your wallet {LosingMember.name}.\n",
+                                        inline=False)
             Details = f"(Coming soon)"
-            BattleEmbed.add_field(name="**Fight Details**", value="")
+            BattleEmbed.add_field(name="**Fight Details**", value=Details)
             Self.ME.Bot.Add_To_Wallet(WinningMember, Self.CurrentFight["Wager"])
             Self.ME.Bot.Subject_From_Wallet(LosingMember, Self.CurrentFight["Wager"])
             Self.ME.Delete_Challenge(Self.CurrentFight["ID"])

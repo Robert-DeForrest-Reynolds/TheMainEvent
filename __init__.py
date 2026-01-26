@@ -118,9 +118,9 @@ class MainEvent:
 
 
 	def Get_Fighter(Self, FighterName:str) -> Fighter:
-		Self.DBCursor.execute("SELECT * FROM Fighters WHERE Name=?", (FighterName,))
+		Self.DBCursor.execute("SELECT Health, Power, Defense FROM Fighters WHERE Name=?", (FighterName,))
 		FighterData = Self.DBCursor.fetchone()
-		F = Fighter(FighterName, FighterData[4],FighterData[5],FighterData[6])
+		F = Fighter(FighterName, FighterData[0],FighterData[1],FighterData[2])
 		return F
 	
 
