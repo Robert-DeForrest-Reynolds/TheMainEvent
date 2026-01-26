@@ -65,7 +65,7 @@ class Pit:
 
         Message:DiscordMessage = Thread.message
 
-        while FighterOne["Health"] > 0 or FighterTwo["Health"] > 0:
+        while FighterOne["Health"] > 0 and FighterTwo["Health"] > 0:
             await sleep(5)
             # Fighter one attacks
             FighterOneRoll = randrange(FighterOne["Power"]//4, FighterOne["Power"]+1)

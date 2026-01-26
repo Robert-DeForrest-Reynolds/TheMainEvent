@@ -243,7 +243,8 @@ class Fighters(Panel):
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Accepted Challenge", value=f"Fight will start in the <#{Self.Crucible.Channels["Pit"].id}> soon!", inline=False)
 
-		Self.Crucible.Pit.Fights.append(Self.OpposingChallenges[Self.SelectedOpposingChallenge])
+		Challenge = Self.OpposingChallenges.pop(Self.SelectedOpposingChallenge)
+		Self.Crucible.Pit.Fights.append(Challenge)
 		Self.SelectedOpposingChallenge = None
 
 		await Interaction.response.defer()

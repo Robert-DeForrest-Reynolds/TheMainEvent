@@ -35,38 +35,7 @@ class Crucible:
 
 
 		Self.DB = connect(join("Data", "Crucible.db"))
-
 		Self.DBCursor = Self.DB.cursor()
-		
-		Self.DBCursor.execute('PRAGMA journal_mode=WAL;')
-		Self.DB.commit()
-
-		Self.DBCursor.execute("""
-		CREATE TABLE IF NOT EXISTS Fighters (
-			ID   INTEGER PRIMARY KEY AUTOINCREMENT,
-			OwnerID     TEXT NOT NULL,
-			Name        TEXT NOT NULL UNIQUE,
-			Level       INTEGER DEFAULT 1,
-			Experience  INTEGER DEFAULT 0,
-			Health		INTEGER NOT NULL,
-			Power		INTEGER NOT NULL,
-			Defense		INTEGER NOT NULL,
-			CreatedAt   TEXT NOT NULL DEFAULT (datetime('now'))
-		);
-		""")
-
-		Self.DBCursor.execute("""
-		CREATE TABLE IF NOT EXISTS Challenges (
-			ID   				TEXT PRIMARY KEY,
-			ChallengerID    	INTEGER NOT NULL,
-			ChallengeeID  		INTEGER NOT NULL,
-			ChallengerFighter	TEXT NOT NULL,
-			ChallengeeFighter	TEXT NOT NULL,
-			Wager				REAL NOT NULL,
-			CreatedAt   		TEXT NOT NULL DEFAULT (datetime('now'))
-		);
-		""")
-		Self.DB.commit()
 
 
 	def Get_Challenges(Self, Member:DiscordMember):
