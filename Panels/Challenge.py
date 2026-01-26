@@ -115,6 +115,7 @@ class Challenge:
 
 
 	async def Confirm_Fight(Self, Interaction:DiscordInteraction):
+		if Interaction.user.id != Self.User.id: return
 		Self.View = View(timeout=30)
 		Self.Embed = Embed(title="Challenge Sent")
 		Data = [Self.Fighter, Self.OpponentFighter, Self.Wager]

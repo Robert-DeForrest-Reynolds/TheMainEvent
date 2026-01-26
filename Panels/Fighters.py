@@ -235,6 +235,7 @@ class Fighters:
 
 
 	async def Accept_Challenge(Self, Interaction:DiscordInteraction):
+		if Interaction.user.id != Self.User.id: return
 		Self.View = View(timeout=60*5)
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Accepted Challenge", value=f"Fight will start in the <#{Self.ME.Channels["Pit"].id}> soon!", inline=False)
@@ -250,6 +251,7 @@ class Fighters:
 
 
 	async def Reject_Challenge(Self, Interaction:DiscordInteraction):
+		if Interaction.user.id != Self.User.id: return
 		Self.View = View(timeout=60*5)
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Rejected Challenge", value="", inline=False)
@@ -267,6 +269,7 @@ class Fighters:
 
 
 	async def Cancel_Challenge(Self, Interaction:DiscordInteraction):
+		if Interaction.user.id != Self.User.id: return
 		Self.View = View(timeout=60*5)
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Canceled Challenge", value="", inline=False)
