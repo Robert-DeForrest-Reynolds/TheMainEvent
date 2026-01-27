@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-	from Bots.Crucible.__main__ import Crucible
+	from Bots.Crucible import Crucible as C
 
 from discord import Interaction as DiscordInteraction
 from discord import Member as DiscordMember
@@ -12,8 +12,8 @@ from asyncio import create_task
 
 
 class Challenge(Panel):
-	def __init__(Self, Interaction:DiscordInteraction, Opponent:DiscordMember, Wager:float, CrucibleReference:Crucible) -> None:
-		super().__init__(Interaction.user, CrucibleReference.Bot)
+	def __init__(Self, Interaction:DiscordInteraction, Opponent:DiscordMember, Wager:float, CrucibleReference:C) -> None:
+		super().__init__(Interaction.user, CrucibleReference.EverburnBot)
 		Self.Crucible = CrucibleReference
 		Self.Opponent = Opponent
 		Self.Fighters:dict = None
@@ -29,16 +29,16 @@ class Challenge(Panel):
 		await Self.Referesh_Panel()
 		Self.Embed = Embed(title="Select the fighters")
 		
-		Self.Funds = Self.Bot.Get_Wallet(Interaction.user)
+		Self.Funds = Self.EverburnBot.Get_Wallet(Interaction.user)
 
-		ChallengerFighters = Self.Crucible.Get_Fighters(Interaction.user)
-		Opponentfighters = Self.Crucible.Get_Fighters(Self.Opponent)
+		ChallengerFighters = await Self.Crucible.Get_Fighters(Interaction.user)
+		Opponentfighters = await Self.Crucible.Get_Fighters(Self.Opponent)
 
-		if not Self.Check_Challenges(Self.User):
+		if not await Self.Check_Challenges(Self.User):
 			Self.Embed.add_field(name="Challenge Error:", value="You have max challenges already (25).")
 			await Interaction.response.send_message(view=Self.View, embed=Self.Embed)
 			return
-		if not Self.Check_Challenges(Self.Opponent):
+		if not await Self.Check_Challenges(Self.Opponent):
 			Self.Embed.add_field(name="Challenge Error:", value=f"{Self.Opponent.name} has max challenges already (25).")
 			await Interaction.response.send_message(view=Self.View, embed=Self.Embed)
 			return
@@ -94,12 +94,10 @@ class Challenge(Panel):
 			Self.Message = await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
 
 	
-	def Check_Challenges(Self, Member:DiscordMember) -> bool:
-		Self.Crucible.DBCursor.execute(
-			"SELECT COUNT(*) FROM Challenges WHERE ChallengerID = ? OR ChallengeeID = ?",
-			(Member.id, Member.id)
-		)
-		ChallengeCount = Self.Crucible.DBCursor.fetchone()[0]
+	async def Check_Challenges(Self, Member:DiscordMember) -> bool:
+		Result = await Self.Crucible.DB.Request("SELECT COUNT(*) FROM Challenges WHERE ChallengerID = ? OR ChallengeeID = ?",
+								 (Member.id, Member.id))
+		ChallengeCount = Result[0][0]
 		if ChallengeCount >= 25:
 			return False
 		else:
@@ -121,7 +119,7 @@ class Challenge(Panel):
 		await Self.Referesh_Panel()
 		Self.Embed = Embed(title="Challenge Sent")
 		Data = [Self.Fighter, Self.OpponentFighter, Self.Wager]
-		Self.Crucible.Save_New_Challenge(Self.User, Self.Opponent, Data)
+		await Self.Crucible.Save_New_Challenge(Self.User, Self.Opponent, Data)
 		Self.Embed.add_field(name="Challenge:", value=f"**{Self.Fighter}** vs. **{Self.OpponentFighter}** for **${Self.Wager:,.2f}**")
 		await Interaction.response.edit_message(view=Self.View, embed=Self.Embed)
 		ChallengesChannel:TextChannel = Self.Crucible.Channels["Challenges"]

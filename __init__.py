@@ -5,17 +5,18 @@ from discord import Member as DiscordMember
 from discord.abc import GuildChannel
 from discord import ForumChannel
 
-from Library.EverburnBot import EverburnBot
+from Library.DB import DB
+from Library.EverburnBot import EverburnBot as EB
 from Bots.Crucible.Pit import Pit
 
 class Crucible:
-	def __init__(Self, Bot:EverburnBot):
+	def __init__(Self, Bot:EB):
 		Self.Forums:dict[str:ForumChannel] = {}
 		Self.Channels:dict[str:GuildChannel] = {}
 		Self.Weapons = []
 		Self.AttackMoves = []
 		Self.DefensiveMoves = []
-		Self.Bot:EverburnBot = Bot
+		Self.EverburnBot:EB = Bot
 		Self.Pit:Pit = None
 
 		with open(join("Bots", "Crucible", "Data", "Weapons.txt"), 'r') as File:
@@ -34,20 +35,15 @@ class Crucible:
 				Self.DefensiveMoves.append(Line.strip())
 
 
-		Self.DB = connect(join("Data", "Crucible.db"))
-		Self.DBCursor = Self.DB.cursor()
+		Self.DB:DB = None
 
 
-	def Get_Challenges(Self, Member:DiscordMember):
-		Self.DBCursor.execute(
-			"SELECT * FROM Challenges WHERE ChallengerID=?",
-			(Member.id,),
-		)
-		Data = Self.DBCursor.fetchall()
-		Challenges = {Self.Bot.TheGreatHearth.get_member(ChallengeeID).name:
+	async def Get_Challenges(Self, Member:DiscordMember):
+		Data = await Self.DB.Request("SELECT * FROM Challenges WHERE ChallengerID=?", (Member.id,))
+		Challenges = {Self.EverburnBot.TheGreatHearth.get_member(ChallengeeID).name:
 								   {"ID":ChallengeID,
-							  		"Challenger":Self.Bot.TheGreatHearth.get_member(ChallengerID),
-							  		"Challengee":Self.Bot.TheGreatHearth.get_member(ChallengeeID),
+							  		"Challenger":Self.EverburnBot.TheGreatHearth.get_member(ChallengerID),
+							  		"Challengee":Self.EverburnBot.TheGreatHearth.get_member(ChallengeeID),
 								    "ChallengerID":ChallengerID,
 								    "ChallengeeID":ChallengeeID,
 								    "ChallengerFighter":ChallengerFighter,
@@ -58,16 +54,12 @@ class Crucible:
 		return Challenges
 
 
-	def Get_Opposing_Challenges(Self, Member:DiscordMember):
-		Self.DBCursor.execute(
-			"SELECT * FROM Challenges WHERE ChallengeeID=?",
-			(Member.id,),
-		)
-		Data = Self.DBCursor.fetchall()
-		Challenges = {Self.Bot.TheGreatHearth.get_member(ChallengerID).name:
+	async def Get_Opposing_Challenges(Self, Member:DiscordMember):
+		Data = await Self.DB.Request("SELECT * FROM Challenges WHERE ChallengeeID=?", (Member.id,))
+		Challenges = {Self.EverburnBot.TheGreatHearth.get_member(ChallengerID).name:
 								   {"ID":ChallengeID,
-							  		"Challenger":Self.Bot.TheGreatHearth.get_member(ChallengerID),
-							  		"Challengee":Self.Bot.TheGreatHearth.get_member(ChallengeeID),
+							  		"Challenger":Self.EverburnBot.TheGreatHearth.get_member(ChallengerID),
+							  		"Challengee":Self.EverburnBot.TheGreatHearth.get_member(ChallengeeID),
 								    "ChallengerID":ChallengerID,
 								    "ChallengeeID":ChallengeeID,
 								    "ChallengerFighter":ChallengerFighter,
@@ -78,44 +70,35 @@ class Crucible:
 		return Challenges
 
 
-	def Get_Fighters(Self, Member:DiscordMember):
-		Self.DBCursor.execute("SELECT ID, Name, Level, Experience, Health, Power, Defense, CreatedAt FROM Fighters WHERE OwnerID=?", (Member.id,))
-		Data = Self.DBCursor.fetchall()
+	async def Get_Fighters(Self, Member:DiscordMember):
+		Data = await Self.DB.Request("SELECT ID, Name, Level, Experience, Health, Power, Defense, CreatedAt FROM Fighters WHERE OwnerID=?",
+				  			   (Member.id,))
 		Fighters = {Name:{"ID":ID, "Name":Name, "Level":Level, "Experience":Experience, "Health":Health, "Power":Power, "Defense":Defense, "Created At":CreatedAt}
 			  		for ID, Name, Level, Experience, Health, Power, Defense, CreatedAt in Data}
 		return Fighters
 
 
-	def Get_Fighter(Self, FighterName:str) -> list:
-		Self.DBCursor.execute("SELECT Health, Power, Defense FROM Fighters WHERE Name=?", (FighterName,))
-		FighterData = Self.DBCursor.fetchone()
-		return {"Name":FighterName, "Health":FighterData[0],"Power":FighterData[1],"Defense":FighterData[2]}
+	async def Get_Fighter(Self, FighterName:str) -> list:
+		Data = await Self.DB.Request("SELECT Health, Power, Defense FROM Fighters WHERE Name=?", (FighterName,))[0]
+		return {"Name":FighterName, "Health":Data[0],"Power":Data[1],"Defense":Data[2]}
 	
 
-	def Delete_Fighter(Self, FighterName:str):
-		Self.DBCursor.execute(
-			"DELETE FROM Fighters WHERE Name=?",
-			(FighterName,)
-		)
-		Self.DB.commit()
+	async def Delete_Fighter(Self, FighterName:str):
+		await Self.DB.Request("DELETE FROM Fighters WHERE Name=?",
+						(FighterName,))
 
 
-	def Save_New_Fighter(Self, Member:DiscordMember, FighterName):
-		Self.DBCursor.execute("INSERT OR IGNORE INTO Fighters (OwnerID, Name, Health, Power, Defense) VALUES (?,?,?,?,?)",
-							  (Member.id, FighterName, 50, 50, 50))
-		Self.DB.commit()
+	async def Save_New_Fighter(Self, Member:DiscordMember, FighterName):
+		await Self.DB.Request("INSERT OR IGNORE INTO Fighters (OwnerID, Name, Health, Power, Defense) VALUES (?,?,?,?,?)",
+						(Member.id, FighterName, 50, 50, 50))
 
 
-	def Save_New_Challenge(Self, Challenger:DiscordMember, Challengee:DiscordMember, Data:list):
+	async def Save_New_Challenge(Self, Challenger:DiscordMember, Challengee:DiscordMember, Data:list):
 		ChallengeID = f"{Challenger.id}{Challengee.id}"
-		Self.DBCursor.execute("INSERT OR IGNORE INTO Challenges (ID, ChallengerID, ChallengeeID, ChallengerFighter, ChallengeeFighter, Wager) VALUES (?,?,?,?,?,?)",
-							  (ChallengeID, Challenger.id, Challengee.id, Data[0], Data[1], Data[2]))
-		Self.DB.commit()
+		await Self.DB.Request("INSERT OR IGNORE INTO Challenges (ID, ChallengerID, ChallengeeID, ChallengerFighter, ChallengeeFighter, Wager) VALUES (?,?,?,?,?,?)",
+						(ChallengeID, Challenger.id, Challengee.id, Data[0], Data[1], Data[2]))
 
 
-	def Delete_Challenge(Self, ChallengeID:str):
-		Self.DBCursor.execute(
-			"DELETE FROM Challenges WHERE ID=?",
-			(ChallengeID,)
-		)
-		Self.DB.commit()
+	async def Delete_Challenge(Self, ChallengeID:str):
+		await Self.DB.Request("DELETE FROM Challenges WHERE ID=?",
+						(ChallengeID,))

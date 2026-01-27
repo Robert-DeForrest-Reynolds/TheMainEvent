@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-	from Bots.Crucible.__main__ import Crucible
+	from Bots.Crucible import Crucible as C
 
 from discord import Interaction as DiscordInteraction
 from discord import Embed, SelectOption, ButtonStyle
@@ -13,8 +13,8 @@ from Library.Panel import Panel
 FighterValue = 300
 
 class Fighters(Panel):
-	def __init__(Self, Interaction:DiscordInteraction, CrucibleReference:Crucible) -> None:
-		super().__init__(Interaction.user, CrucibleReference.Bot)
+	def __init__(Self, Interaction:DiscordInteraction, CrucibleReference:C) -> None:
+		super().__init__(Interaction.user, CrucibleReference.EverburnBot)
 		Self.Crucible = CrucibleReference
 		Self.Fighters:dict = None
 		Self.Challenges:dict = None
@@ -32,7 +32,7 @@ class Fighters(Panel):
 		if Interaction.user.id != Self.User.id: return
 		await Self.Referesh_Panel()
 		Self.Embed = Embed(title=f"{Interaction.user}'s Fighter's")
-		Self.Funds = Self.Bot.Get_Wallet(Self.User)
+		Self.Funds = Self.EverburnBot.Get_Wallet(Self.User)
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 		if Self.InvalidName:
 			Self.Embed.add_field(name="Error:", value=f"`{Self.InvalidName}` already exists", inline=False)
@@ -73,9 +73,9 @@ class Fighters(Panel):
 			RejectButton.callback = Self.Reject_Challenge
 			Self.View.add_item(RejectButton)
 			
-		Self.Build_Fighter_Select()
-		Self.Build_Challenge_Select()
-		Self.Build_Opposing_Challenge_Select()
+		await Self.Build_Fighter_Select()
+		await Self.Build_Challenge_Select()
+		await Self.Build_Opposing_Challenge_Select()
 		if FollowUp:
 			await Interaction.followup.edit_message(message_id=Interaction.message.id, view=Self.View, embed=Self.Embed)
 		else:
@@ -84,13 +84,13 @@ class Fighters(Panel):
 
 	async def Check_Funds(Self, Interaction:DiscordInteraction):
 		if Interaction.user.id != Self.User.id: return
-		if not Self.Check_Fighters_Count():
+		if not await Self.Check_Fighters_Count():
 			Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 			Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 			Self.Embed.add_field(name="You already possess maximum fighters (25)", value="", inline=False)
 			await Interaction.response.edit_message(view=Self.View, embed=Self.Embed)
 			return
-		Self.Funds = Self.Bot.Get_Wallet(Self.User)
+		Self.Funds = Self.EverburnBot.Get_Wallet(Self.User)
 		if FighterValue > Self.Funds:
 			Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 			Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
@@ -115,8 +115,8 @@ class Fighters(Panel):
 		await Self.Send_Panel(Interaction)
 
 
-	def Build_Fighter_Select(Self):
-		Self.Fighters = Self.Crucible.Get_Fighters(Self.User)
+	async def Build_Fighter_Select(Self):
+		Self.Fighters = await Self.Crucible.Get_Fighters(Self.User)
 		if len(Self.Fighters) > 0:
 			Options = [SelectOption(label=F["Name"]) for F in Self.Fighters.values()]
 
@@ -125,8 +125,8 @@ class Fighters(Panel):
 			Self.View.add_item(Self.FightersSelect)
 
 
-	def Build_Challenge_Select(Self):
-		Self.Challenges = Self.Crucible.Get_Challenges(Self.User)
+	async def Build_Challenge_Select(Self):
+		Self.Challenges = await Self.Crucible.Get_Challenges(Self.User)
 		if len(Self.Challenges) > 0:
 			Options = [SelectOption(label=f'{C["Challengee"].name}') for C in Self.Challenges.values()]
 
@@ -139,8 +139,8 @@ class Fighters(Panel):
 			Self.View.add_item(Self.ChallengesSelect)
 
 
-	def Build_Opposing_Challenge_Select(Self):
-		Self.OpposingChallenges = Self.Crucible.Get_Opposing_Challenges(Self.User)
+	async def Build_Opposing_Challenge_Select(Self):
+		Self.OpposingChallenges = await Self.Crucible.Get_Opposing_Challenges(Self.User)
 		if len(Self.OpposingChallenges) > 0:
 			Options = [SelectOption(label=f'{C["Challenger"].name}') for C in Self.OpposingChallenges.values()]
 
@@ -153,14 +153,10 @@ class Fighters(Panel):
 			Self.View.add_item(Self.OpposingChallengesSelect)
 
 	
-	def Check_Fighters_Count(Self) -> bool:
-		Cursor = Self.Crucible.DB.cursor()
-		Cursor.execute(
-			"SELECT COUNT(*) FROM Fighters WHERE OwnerID = ?",
-			(Self.User.id,)
-		)
-		FighterCount = Cursor.fetchone()[0]
-
+	async def Check_Fighters_Count(Self) -> bool:
+		Result = await Self.Crucible.DB.Request("SELECT COUNT(*) FROM Fighters WHERE OwnerID = ?",
+								 (Self.User.id,))
+		FighterCount = Result[0][0]
 		if FighterCount >= 25:
 			return False
 		else:
@@ -168,13 +164,9 @@ class Fighters(Panel):
 
 
 	async def Validate_Name(Self, Interaction:DiscordInteraction):
-		Cursor = Self.Crucible.DB.cursor()
-		Cursor.execute(
-			"SELECT 1 FROM Fighters WHERE Name = ? LIMIT 1",
-			(Self.FighterNameSubmission.value,)
-		)
-		Exists = Cursor.fetchone() is not None
-		if not Exists:
+		Result = await Self.Crucible.DB.Request("SELECT 1 FROM Fighters WHERE Name = ? LIMIT 1",
+										  (Self.FighterNameSubmission.value,))
+		if not Result:
 			await Self.Purchase_Fighter(Interaction, Self.FighterNameSubmission.value)
 		else:
 			Self.InvalidName = Self.FighterNameSubmission.value
@@ -194,16 +186,16 @@ class Fighters(Panel):
 
 	async def Purchase_Fighter(Self, Interaction:DiscordInteraction, Name:str):
 		Self.Funds -= FighterValue
-		Self.Bot.Transact(Self.User, Self.Funds)
-		Self.Funds = Self.Bot.Get_Wallet(Self.User)
+		Self.EverburnBot.Transact(Self.User, Self.Funds)
+		Self.Funds = Self.EverburnBot.Get_Wallet(Self.User)
 		
-		Self.Bot.Send(f"{Self.User} purchased a fighter")
+		Self.EverburnBot.Send(f"{Self.User} purchased a fighter")
 		
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 		Self.Embed.add_field(name="Purchased Fighter:", value=Name, inline=False)
 		
-		Self.Crucible.Save_New_Fighter(Self.User, Name)
+		await Self.Crucible.Save_New_Fighter(Self.User, Name)
 		
 		await Interaction.response.defer()
 		await Interaction.followup.edit_message(message_id=Interaction.message.id ,view=Self.View, embed=Self.Embed)
@@ -218,17 +210,17 @@ class Fighters(Panel):
 
 		Self.Crucible.Delete_Fighter(Self.SelectedFighter)
 
-		Self.Bot.Apply_Wallet(Self.User, Self.Funds + FighterValue)
+		Self.EverburnBot.Apply_Wallet(Self.User, Self.Funds + FighterValue)
 
-		Self.Bot.Send(f"{Self.User} sold {Self.SelectedFighter}")
+		Self.EverburnBot.Send(f"{Self.User} sold {Self.SelectedFighter}")
 		
-		Self.Funds = Self.Bot.Get_Wallet(Self.User)
+		Self.Funds = Self.EverburnBot.Get_Wallet(Self.User)
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 		Self.Embed.add_field(name=f"Sold {Self.SelectedFighter} for {FighterValue}", value="", inline=False)
 
 		Self.SelectedFighter = None
-		Self.Build_Fighter_Select()
+		await Self.Build_Fighter_Select()
 		await Interaction.response.defer()
 		await Interaction.followup.edit_message(message_id=Interaction.message.id ,view=Self.View, embed=Self.Embed)
 
@@ -261,7 +253,7 @@ class Fighters(Panel):
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Rejected Challenge", value="", inline=False)
 
-		Self.Crucible.Delete_Challenge(Self.SelectedOpposingChallenge["ID"])
+		await Self.Crucible.Delete_Challenge(Self.SelectedOpposingChallenge["ID"])
 		Self.SelectedOpposingChallenge = None
 
 		await Interaction.response.defer()
@@ -279,7 +271,7 @@ class Fighters(Panel):
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Canceled Challenge", value="", inline=False)
 
-		Self.Crucible.Delete_Challenge(Self.Challenges[Self.SelectedChallenge]["ID"])
+		await Self.Crucible.Delete_Challenge(Self.Challenges[Self.SelectedChallenge]["ID"])
 		Self.SelectedChallenge = None
 
 		await Interaction.response.defer()
