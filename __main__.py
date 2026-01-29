@@ -43,9 +43,6 @@ async def fighters(Interaction:Interaction):
 
 Crucible.run(Crucible.Token)
 Crucible.Pit.Alive = False
-Crucible.Send("stopped")
 Crucible.DB.Connection.close()
-# Shutdown
-# await Self.DBWorker.Queue.put(None)
-# Self.DBWorker.Alive = False
-exit()
+Crucible.Send("stopped")
+exit() # Send rational exit code, no matter. We output any errors to Everburn already
