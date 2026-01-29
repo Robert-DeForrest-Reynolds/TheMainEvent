@@ -1,4 +1,3 @@
-from sqlite3 import connect
 from os.path import join
 
 from discord import Member as DiscordMember
