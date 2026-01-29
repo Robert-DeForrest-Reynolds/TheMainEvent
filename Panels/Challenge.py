@@ -12,9 +12,9 @@ from asyncio import create_task
 
 
 class Challenge(Panel):
-	def __init__(Self, Interaction:DiscordInteraction, Opponent:DiscordMember, Wager:float, CrucibleReference:C) -> None:
-		super().__init__(Interaction.user, CrucibleReference.Crucible)
-		Self.Crucible = CrucibleReference
+	def __init__(Self, Interaction:DiscordInteraction, Opponent:DiscordMember, Wager:float, Crucible:C) -> None:
+		super().__init__(Interaction.user, Crucible)
+		Self.Crucible = Crucible
 		Self.Opponent = Opponent
 		Self.Fighters:dict = None
 		Self.Fighter = None

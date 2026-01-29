@@ -51,8 +51,8 @@ class Pit:
     async def Battle(Self):
         BattleView = View(timeout=14400)
         
-        FighterOne = Self.Crucible.Get_Fighter(Self.CurrentFight["ChallengerFighter"])
-        FighterTwo = Self.Crucible.Get_Fighter(Self.CurrentFight["ChallengeeFighter"])
+        FighterOne = await Self.Crucible.Get_Fighter(Self.CurrentFight["ChallengerFighter"])
+        FighterTwo = await Self.Crucible.Get_Fighter(Self.CurrentFight["ChallengeeFighter"])
         BattleEmbed = Embed(title=f"⚔️ {FighterOne['Name']} versus {FighterTwo['Name']} ⚔️")
 
         await Self.Construct_Description(BattleEmbed, FighterOne, FighterTwo)
@@ -146,6 +146,6 @@ class Pit:
             BattleEmbed.add_field(name="**Fight Details**", value=Details)
             Self.Crucible.Add_To_Wallet(WinningMember, Self.CurrentFight["Wager"])
             Self.Crucible.Subject_From_Wallet(LosingMember, Self.CurrentFight["Wager"])
-            Self.Crucible.Delete_Challenge(Self.CurrentFight["ID"])
+            await Self.Crucible.Delete_Challenge(Self.CurrentFight["ID"])
             Self.CurrentFight = None
             await Message.edit(embed=BattleEmbed)

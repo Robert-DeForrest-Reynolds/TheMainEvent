@@ -3,15 +3,18 @@ from os.path import join
 
 from discord import Member as DiscordMember
 from discord.abc import GuildChannel
+from discord import Game as DiscordGame
 from discord import ForumChannel
 
 from Library.DB import DB
 from Library.EverburnBot import EverburnBot as EB
 from Bots.Crucible.Pit import Pit
 
+
 class Crucible(EB):
 	def __init__(Self):
-		super().__init__()
+		super().__init__(Self.Setup)
+		Self.DB:DB = None
 		Self.Forums:dict[str:ForumChannel] = {}
 		Self.Channels:dict[str:GuildChannel] = {}
 		Self.Weapons = []
@@ -35,15 +38,22 @@ class Crucible(EB):
 				Self.DefensiveMoves.append(Line.strip())
 
 
-		Self.DB:DB = None
+	async def Setup(Self) -> None:
+		Self.DB = DB(join("Data", "Crucible.db"), Self) # Attach DB Task to Bot's event loop
+		Self.Channels.update({"Lounge":Self.get_channel(1462614581678706739),
+							"Pit":Self.get_channel(1462614973741137953),
+							"Arena":Self.get_channel(1462615216733818943),
+							"Challenges":Self.get_channel(1464681901775392768)})
+		Self.Pit = Pit(Self)
+		await Self.change_presence(activity=DiscordGame("Orchestrating combat."), status=f'/{"_" if Self.Testing else ""}fighters')
 
 
 	async def Get_Challenges(Self, Member:DiscordMember):
 		Data = await Self.DB.Request("SELECT * FROM Challenges WHERE ChallengerID=?", (Member.id,))
-		Challenges = {Self.EverburnBot.TheGreatHearth.get_member(ChallengeeID).name:
+		Challenges = {Self.TheGreatHearth.get_member(ChallengeeID).name:
 								   {"ID":ChallengeID,
-							  		"Challenger":Self.EverburnBot.TheGreatHearth.get_member(ChallengerID),
-							  		"Challengee":Self.EverburnBot.TheGreatHearth.get_member(ChallengeeID),
+							  		"Challenger":Self.TheGreatHearth.get_member(ChallengerID),
+							  		"Challengee":Self.TheGreatHearth.get_member(ChallengeeID),
 								    "ChallengerID":ChallengerID,
 								    "ChallengeeID":ChallengeeID,
 								    "ChallengerFighter":ChallengerFighter,
@@ -56,10 +66,10 @@ class Crucible(EB):
 
 	async def Get_Opposing_Challenges(Self, Member:DiscordMember):
 		Data = await Self.DB.Request("SELECT * FROM Challenges WHERE ChallengeeID=?", (Member.id,))
-		Challenges = {Self.EverburnBot.TheGreatHearth.get_member(ChallengerID).name:
+		Challenges = {Self.TheGreatHearth.get_member(ChallengerID).name:
 								   {"ID":ChallengeID,
-							  		"Challenger":Self.EverburnBot.TheGreatHearth.get_member(ChallengerID),
-							  		"Challengee":Self.EverburnBot.TheGreatHearth.get_member(ChallengeeID),
+							  		"Challenger":Self.TheGreatHearth.get_member(ChallengerID),
+							  		"Challengee":Self.TheGreatHearth.get_member(ChallengeeID),
 								    "ChallengerID":ChallengerID,
 								    "ChallengeeID":ChallengeeID,
 								    "ChallengerFighter":ChallengerFighter,
