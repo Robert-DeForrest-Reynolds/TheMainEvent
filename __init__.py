@@ -79,7 +79,8 @@ class Crucible:
 
 
 	async def Get_Fighter(Self, FighterName:str) -> list:
-		Data = await Self.DB.Request("SELECT Health, Power, Defense FROM Fighters WHERE Name=?", (FighterName,))[0]
+		Result = await Self.DB.Request("SELECT Health, Power, Defense FROM Fighters WHERE Name=?", (FighterName,))
+		Data = Result[0]
 		return {"Name":FighterName, "Health":Data[0],"Power":Data[1],"Defense":Data[2]}
 	
 

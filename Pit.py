@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from Bots.Crucible.__main__ import Crucible
+    from Bots.Crucible import Crucible
 
 from discord import Embed, ForumChannel
 from discord import Message as DiscordMessage
@@ -23,25 +23,25 @@ class Pit:
         while Self.Alive:
             if Self.CurrentFight == None and len(Self.Fights) > 0:
                 Self.CurrentFight = Self.Fights.pop(0)
-                Self.Crucible.Bot.Send(f"Fight starting! {Self.CurrentFight}")
+                Self.Crucible.EverburnBot.Send(f"Fight starting! {Self.CurrentFight}")
                 await Self.Battle()
             await sleep(5)
 
 
     async def Construct_Description(Self, BattleEmbed:Embed, FighterOne, FighterTwo):
         FighterOneDesc = ""
-        FighterOneDesc += f"{FighterOne["Name"]}\n"
-        FighterOneDesc += f"💚 {FighterOne["Health"]}\n"
-        FighterOneDesc += f"💪 {FighterOne["Power"]}\n"
-        FighterOneDesc += f"🛡️ {FighterOne["Defense"]}\n"
+        FighterOneDesc += f"{FighterOne['Name']}\n"
+        FighterOneDesc += f"💚 {FighterOne['Health']}\n"
+        FighterOneDesc += f"💪 {FighterOne['Power']}\n"
+        FighterOneDesc += f"🛡️ {FighterOne['Defense']}\n"
         
         Clash = "⚔️"
 
         FighterTwoDesc = ""
-        FighterTwoDesc += f"{FighterTwo["Name"]}\n"
-        FighterTwoDesc += f"💚 {FighterTwo["Health"]}\n"
-        FighterTwoDesc += f"💪 {FighterTwo["Power"]}\n"
-        FighterTwoDesc += f"🛡️ {FighterTwo["Defense"]}\n"
+        FighterTwoDesc += f"{FighterTwo['Name']}\n"
+        FighterTwoDesc += f"💚 {FighterTwo['Health']}\n"
+        FighterTwoDesc += f"💪 {FighterTwo['Power']}\n"
+        FighterTwoDesc += f"🛡️ {FighterTwo['Defense']}\n"
             
         BattleEmbed.add_field(name="\u200b", value=FighterOneDesc)
         BattleEmbed.add_field(name="\u200b", value=Clash)
@@ -53,41 +53,41 @@ class Pit:
         
         FighterOne = Self.Crucible.Get_Fighter(Self.CurrentFight["ChallengerFighter"])
         FighterTwo = Self.Crucible.Get_Fighter(Self.CurrentFight["ChallengeeFighter"])
-        BattleEmbed = Embed(title=f"⚔️ {FighterOne["Name"]} versus {FighterTwo["Name"]} ⚔️")
+        BattleEmbed = Embed(title=f"⚔️ {FighterOne['Name']} versus {FighterTwo['Name']} ⚔️")
 
         await Self.Construct_Description(BattleEmbed, FighterOne, FighterTwo)
 
         PitChannel:ForumChannel = Self.Crucible.Channels["Pit"]
-        Thread = await PitChannel.create_thread(name=f"{FighterOne["Name"]} vs. {FighterTwo["Name"]}",
+        Thread = await PitChannel.create_thread(name=f"{FighterOne['Name']} vs. {FighterTwo['Name']}",
                                                 content="Welcome to the pit!",
                                                 view=BattleView,
                                                 embed=BattleEmbed)
 
         Message:DiscordMessage = Thread.message
 
-        while FighterOne["Health"] > 0 and FighterTwo["Health"] > 0:
+        while FighterOne['Health'] > 0 and FighterTwo['Health'] > 0:
             await sleep(5)
             # Fighter one attacks
-            FighterOneRoll = randrange(FighterOne["Power"]//4, FighterOne["Power"]+1)
+            FighterOneRoll = randrange(FighterOne['Power']//4, FighterOne['Power']+1)
             FighterOneDamage = FighterOneRoll
 
             FighterTwoWeapon = Self.Crucible.Weapons[randrange(0, len(Self.Crucible.Weapons))]
             FighterOneAttackMove = Self.Crucible.AttackMoves[randrange(0, len(Self.Crucible.AttackMoves))]
 
-            FighterTwoDefense = randrange(FighterTwo["Defense"]//4, FighterTwo["Defense"]+1)
+            FighterTwoDefense = randrange(FighterTwo['Defense']//4, FighterTwo['Defense']+1)
             FighterTwoDefensiveMove = Self.Crucible.DefensiveMoves[randrange(0, len(Self.Crucible.DefensiveMoves))]
 
-            if FighterOneDamage - FighterTwoDefense < FighterOne["Power"]//4: FighterOneDamage = FighterOne["Power"]//4
+            if FighterOneDamage - FighterTwoDefense < FighterOne['Power']//4: FighterOneDamage = FighterOne['Power']//4
             else: FighterOneDamage -= FighterTwoDefense
 
-            FighterTwo["Health"] -= FighterOneDamage
-            if FighterTwo["Health"] <= 0: break # Stop loop if FighterTwo has zero health
+            FighterTwo['Health'] -= FighterOneDamage
+            if FighterTwo['Health'] <= 0: break # Stop loop if FighterTwo has zero health
 
             DamageDesc = ""
-            DamageDesc += f"{FighterOne["Name"]} rolled {FighterOneRoll}, and {FighterOneAttackMove} {FighterTwo["Name"]} with {FighterTwoWeapon} dealing {FighterOneDamage}\n\n"
-            DamageDesc += f"{FighterTwo["Name"]} defended {FighterTwoDefensiveMove} and blocked {FighterTwoDefense} damage\n\n"
+            DamageDesc += f"{FighterOne['Name']} rolled {FighterOneRoll}, and {FighterOneAttackMove} {FighterTwo['Name']} with {FighterTwoWeapon} dealing {FighterOneDamage}\n\n"
+            DamageDesc += f"{FighterTwo['Name']} defended {FighterTwoDefensiveMove} and blocked {FighterTwoDefense} damage\n\n"
 
-            BattleEmbed = Embed(title=f"⚔️ {FighterOne["Name"]} versus {FighterTwo["Name"]} ⚔️")
+            BattleEmbed = Embed(title=f"⚔️ {FighterOne['Name']} versus {FighterTwo['Name']} ⚔️")
             BattleEmbed.add_field(name="\u200b", value=DamageDesc, inline=False)
             await Self.Construct_Description(BattleEmbed, FighterOne, FighterTwo)
 
@@ -96,26 +96,26 @@ class Pit:
             await sleep(5)
 
             ## Now fighter two attacks
-            FighterTwoRoll = randrange(FighterTwo["Power"]//4, FighterTwo["Power"]+1)
+            FighterTwoRoll = randrange(FighterTwo['Power']//4, FighterTwo['Power']+1)
             FighterTwoDamage = FighterTwoRoll
 
             FighterTwoWeapon = Self.Crucible.Weapons[randrange(0, len(Self.Crucible.Weapons))]
             FighterTwoAttackMove = Self.Crucible.AttackMoves[randrange(0, len(Self.Crucible.AttackMoves))]
 
-            FighterOneDefense = randrange(FighterOne["Defense"]//4, FighterOne["Defense"]+1)
+            FighterOneDefense = randrange(FighterOne['Defense']//4, FighterOne['Defense']+1)
             FighterOneDefensiveMove = Self.Crucible.DefensiveMoves[randrange(0, len(Self.Crucible.DefensiveMoves))]
 
-            if FighterTwoDamage - FighterOneDefense < FighterTwo["Power"]//4: FighterTwoDamage = FighterTwo["Power"]//4
+            if FighterTwoDamage - FighterOneDefense < FighterTwo['Power']//4: FighterTwoDamage = FighterTwo['Power']//4
             else: FighterTwoDamage -= FighterOneDefense
 
-            FighterOne["Health"] -= FighterTwoDamage
-            if FighterOne["Health"] <= 0: break
+            FighterOne['Health'] -= FighterTwoDamage
+            if FighterOne['Health'] <= 0: break
 
             DamageDesc = ""
-            DamageDesc += f"{FighterTwo["Name"]} rolled {FighterTwoRoll}, and {FighterTwoAttackMove} {FighterOne["Name"]} with {FighterTwoWeapon} dealing {FighterTwoDamage}\n\n"
-            DamageDesc += f"{FighterOne["Name"]} defended {FighterOneDefensiveMove} and blocked {FighterOneDefense} damage\n"
+            DamageDesc += f"{FighterTwo['Name']} rolled {FighterTwoRoll}, and {FighterTwoAttackMove} {FighterOne['Name']} with {FighterTwoWeapon} dealing {FighterTwoDamage}\n\n"
+            DamageDesc += f"{FighterOne['Name']} defended {FighterOneDefensiveMove} and blocked {FighterOneDefense} damage\n"
 
-            BattleEmbed = Embed(title=f"⚔️ {FighterOne["Name"]} versus {FighterTwo["Name"]} ⚔️")
+            BattleEmbed = Embed(title=f"⚔️ {FighterOne['Name']} versus {FighterTwo['Name']} ⚔️")
             BattleEmbed.add_field(name="\u200b", value=DamageDesc, inline=False)
             await Self.Construct_Description(BattleEmbed, FighterOne, FighterTwo)
 
@@ -124,19 +124,19 @@ class Pit:
         Winner = None
         Loser = None
 
-        if FighterTwo["Health"] <= 0:
+        if FighterTwo['Health'] <= 0:
             Winner = FighterOne
             Loser = FighterTwo
-            WinningMember = Self.CurrentFight["Challenger"]
+            WinningMember = Self.CurrentFight['Challenger']
             LosingMember = Self.CurrentFight["Challengee"]
-        if FighterOne["Health"] <= 0:
+        if FighterOne['Health'] <= 0:
             Winner = FighterTwo
             Loser = FighterOne
             WinningMember = Self.CurrentFight["Challengee"]
-            LosingMember = Self.CurrentFight["Challenger"]
+            LosingMember = Self.CurrentFight['Challenger']
         
         if Winner != None:
-            WinMessage = f"⚔️ {Winner["Name"]} has defeated {Loser["Name"]} with 💚{Winner["Health"]} remaining ⚔️"
+            WinMessage = f"⚔️ {Winner['Name']} has defeated {Loser['Name']} with 💚{Winner['Health']} remaining ⚔️"
             BattleEmbed = Embed(title=WinMessage)
             BattleEmbed.add_field(name="",
                                   value=f"${Self.CurrentFight["Wager"]:,.2f} has been added to your wallet {WinningMember.name},"+
@@ -144,8 +144,8 @@ class Pit:
                                         inline=False)
             Details = f"(Coming soon)"
             BattleEmbed.add_field(name="**Fight Details**", value=Details)
-            Self.Crucible.Bot.Add_To_Wallet(WinningMember, Self.CurrentFight["Wager"])
-            Self.Crucible.Bot.Subject_From_Wallet(LosingMember, Self.CurrentFight["Wager"])
+            Self.Crucible.EverburnBot.Add_To_Wallet(WinningMember, Self.CurrentFight["Wager"])
+            Self.Crucible.EverburnBot.Subject_From_Wallet(LosingMember, Self.CurrentFight["Wager"])
             Self.Crucible.Delete_Challenge(Self.CurrentFight["ID"])
             Self.CurrentFight = None
             await Message.edit(embed=BattleEmbed)
