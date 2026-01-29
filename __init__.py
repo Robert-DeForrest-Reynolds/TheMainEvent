@@ -9,14 +9,14 @@ from Library.DB import DB
 from Library.EverburnBot import EverburnBot as EB
 from Bots.Crucible.Pit import Pit
 
-class Crucible:
-	def __init__(Self, Bot:EB):
+class Crucible(EB):
+	def __init__(Self):
+		super().__init__()
 		Self.Forums:dict[str:ForumChannel] = {}
 		Self.Channels:dict[str:GuildChannel] = {}
 		Self.Weapons = []
 		Self.AttackMoves = []
 		Self.DefensiveMoves = []
-		Self.EverburnBot:EB = Bot
 		Self.Pit:Pit = None
 
 		with open(join("Bots", "Crucible", "Data", "Weapons.txt"), 'r') as File:
@@ -70,7 +70,7 @@ class Crucible:
 		return Challenges
 
 
-	async def Get_Fighters(Self, Member:DiscordMember):
+	async def Get_Fighters(Self, Member:DiscordMember) -> dict:
 		Data = await Self.DB.Request("SELECT ID, Name, Level, Experience, Health, Power, Defense, CreatedAt FROM Fighters WHERE OwnerID=?",
 				  			   (Member.id,))
 		Fighters = {Name:{"ID":ID, "Name":Name, "Level":Level, "Experience":Experience, "Health":Health, "Power":Power, "Defense":Defense, "Created At":CreatedAt}

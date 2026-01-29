@@ -14,52 +14,51 @@ from Bots.Crucible.Pit import Pit
 from Bots.Crucible.Panels.Fighters import Fighters
 
 
-CrucibleBot:EB = EB()
-Crucible:C = C(CrucibleBot)
+Crucible:C = C()
 
 
 async def Setup() -> None:
-	CrucibleBot.Send("Post setup")
+	Crucible.Send("Post setup")
 	Crucible.DB = DB(join("Data", "Crucible.db"), Crucible)
-	Crucible.Channels.update({"Lounge":CrucibleBot.Bot.get_channel(1462614581678706739),
-						"Pit":CrucibleBot.Bot.get_channel(1462614973741137953),
-						"Arena":CrucibleBot.Bot.get_channel(1462615216733818943),
-						"Challenges":CrucibleBot.Bot.get_channel(1464681901775392768)})
+	Crucible.Channels.update({"Lounge":Crucible.Bot.get_channel(1462614581678706739),
+						"Pit":Crucible.Bot.get_channel(1462614973741137953),
+						"Arena":Crucible.Bot.get_channel(1462615216733818943),
+						"Challenges":Crucible.Bot.get_channel(1464681901775392768)})
 	Crucible.Pit = Pit(Crucible)
-	await CrucibleBot.Bot.change_presence(activity=DiscordGame(f'/{"_" if CrucibleBot.Testing else ""}fighters'), status="Tending the fights.")
+	await Crucible.Bot.change_presence(activity=DiscordGame(f'/{"_" if Crucible.Testing else ""}fighters'), status="Tending the fights.")
 
 
 
-@CrucibleBot.Bot.tree.command(name="_challenge" if "Testing" in CrucibleBot.Name else "challenge", description="Challenge another player to a fight")
+@Crucible.Bot.tree.command(name="_challenge" if "Testing" in Crucible.Name else "challenge", description="Challenge another player to a fight")
 async def challenge(Interaction:Interaction, challengee:Member, wager:float):
-	if CrucibleBot.Testing:
-		if not await CrucibleBot.Dev_Channel_Gate(Interaction): return
+	if Crucible.Testing:
+		if not await Crucible.Dev_Channel_Gate(Interaction): return
 	Challenge(Interaction, challengee, wager, Crucible)
 
 
-@CrucibleBot.Bot.tree.command(name="_arena" if "Testing" in CrucibleBot.Name else "arena", description="Invoke Crucible's Arena (Admin Only)")
+@Crucible.Bot.tree.command(name="_arena" if "Testing" in Crucible.Name else "arena", description="Invoke Crucible's Arena (Admin Only)")
 async def arena(Interaction:Interaction, action:str):
-	if CrucibleBot.Testing:
-		if not await CrucibleBot.Dev_Channel_Gate(Interaction): return
-	if Interaction.user.id not in CrucibleBot.Admins: return
+	if Crucible.Testing:
+		if not await Crucible.Dev_Channel_Gate(Interaction): return
+	if Interaction.user.id not in Crucible.Admins: return
 	if action == "begin":
 		await Interaction.response.send_message("Beginning arena tournament!", ephemeral=True)
 	else:
 		await Interaction.response.send_message("Invalid action", ephemeral=True, delete_after=5)
 
 
-@CrucibleBot.Bot.tree.command(name="_fighters" if "Testing" in CrucibleBot.Name else "fighters", description="Manage your Crucible fighters")
+@Crucible.Bot.tree.command(name="_fighters" if "Testing" in Crucible.Name else "fighters", description="Manage your Crucible fighters")
 async def fighters(Interaction:Interaction):
-	if CrucibleBot.Testing:
-		if not await CrucibleBot.Dev_Channel_Gate(Interaction): return
+	if Crucible.Testing:
+		if not await Crucible.Dev_Channel_Gate(Interaction): return
 	Fighters(Interaction, Crucible)
 
 
-CrucibleBot.Setup = Setup
+Crucible.Setup = Setup
 
-CrucibleBot.Bot.run(CrucibleBot.Token)
+Crucible.Bot.run(Crucible.Token)
 Crucible.Pit.Alive = False
-CrucibleBot.Send("stopped")
+Crucible.Send("stopped")
 Crucible.DB.close()
 # Shutdown
 # await Self.DBWorker.Queue.put(None)

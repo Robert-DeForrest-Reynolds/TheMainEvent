@@ -23,7 +23,7 @@ class Pit:
         while Self.Alive:
             if Self.CurrentFight == None and len(Self.Fights) > 0:
                 Self.CurrentFight = Self.Fights.pop(0)
-                Self.Crucible.EverburnBot.Send(f"Fight starting! {Self.CurrentFight}")
+                Self.Crucible.Send(f"Fight starting! {Self.CurrentFight}")
                 await Self.Battle()
             await sleep(5)
 
@@ -144,8 +144,8 @@ class Pit:
                                         inline=False)
             Details = f"(Coming soon)"
             BattleEmbed.add_field(name="**Fight Details**", value=Details)
-            Self.Crucible.EverburnBot.Add_To_Wallet(WinningMember, Self.CurrentFight["Wager"])
-            Self.Crucible.EverburnBot.Subject_From_Wallet(LosingMember, Self.CurrentFight["Wager"])
+            Self.Crucible.Add_To_Wallet(WinningMember, Self.CurrentFight["Wager"])
+            Self.Crucible.Subject_From_Wallet(LosingMember, Self.CurrentFight["Wager"])
             Self.Crucible.Delete_Challenge(Self.CurrentFight["ID"])
             Self.CurrentFight = None
             await Message.edit(embed=BattleEmbed)
