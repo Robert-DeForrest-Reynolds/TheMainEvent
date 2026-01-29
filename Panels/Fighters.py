@@ -31,7 +31,7 @@ class Fighters(Panel):
 		if not await Self.Crucible.Validate_Interaction(Interaction): return
 		await Self.Referesh_Panel()
 		Self.Embed = Embed(title=f"{Interaction.user}'s Fighter's")
-		Self.Funds = Self.Crucible.Get_Wallet(Self.User)
+		Self.Funds = await Self.Crucible.Get_Wallet(Self.User)
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 		if Self.InvalidName:
 			Self.Embed.add_field(name="Error:", value=f"`{Self.InvalidName}` already exists", inline=False)
@@ -88,7 +88,7 @@ class Fighters(Panel):
 			Self.Embed.add_field(name="You already possess maximum fighters (25)", value="", inline=False)
 			await Interaction.response.edit_message(view=Self.View, embed=Self.Embed)
 			return
-		Self.Funds = Self.Crucible.Get_Wallet(Self.User)
+		Self.Funds = await Self.Crucible.Get_Wallet(Self.User)
 		if FighterValue > Self.Funds:
 			Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 			Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
@@ -183,9 +183,8 @@ class Fighters(Panel):
 
 
 	async def Purchase_Fighter(Self, Interaction:DiscordInteraction, Name:str):
-		Self.Funds -= FighterValue
-		Self.Crucible.Transact(Self.User, Self.Funds)
-		Self.Funds = Self.Crucible.Get_Wallet(Self.User)
+		await Self.Crucible.Subject_From_Wallet(Self.User, FighterValue)
+		Self.Funds = await Self.Crucible.Get_Wallet(Self.User)
 		
 		Self.Crucible.Send(f"{Self.User} purchased a fighter")
 		
@@ -208,11 +207,11 @@ class Fighters(Panel):
 
 		await Self.Crucible.Delete_Fighter(Self.SelectedFighter)
 
-		Self.Crucible.Apply_Wallet(Self.User, Self.Funds + FighterValue)
+		await Self.Crucible.Add_To_Wallet(Self.User, FighterValue)
 
 		Self.Crucible.Send(f"{Self.User} sold {Self.SelectedFighter}")
 		
-		Self.Funds = Self.Crucible.Get_Wallet(Self.User)
+		Self.Funds = await Self.Crucible.Get_Wallet(Self.User)
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 		Self.Embed.add_field(name=f"Sold {Self.SelectedFighter} for {FighterValue}", value="", inline=False)

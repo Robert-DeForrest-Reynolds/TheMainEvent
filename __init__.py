@@ -13,7 +13,6 @@ from Bots.Crucible.Pit import Pit
 class Crucible(EB):
 	def __init__(Self):
 		super().__init__(Self.Setup)
-		Self.DB:DB = None
 		Self.Forums:dict[str:ForumChannel] = {}
 		Self.Channels:dict[str:GuildChannel] = {}
 		Self.Weapons = []
