@@ -35,7 +35,7 @@ class Challenge(Panel):
 		Self.ChallengerFighters = await Self.Crucible.Get_Fighters(Interaction.user)
 		Self.Opponentfighters = await Self.Crucible.Get_Fighters(Self.Opponent)
 
-		Self.Validate_Challenge(Interaction)
+		if not await Self.Validate_Challenge(Interaction): return
 
 		if Self.Fighter and Self.OpponentFighter:
 			Details = f"You have selected **{Self.Fighter}** to fight **{Self.OpponentFighter}** for **${Self.Wager:,.2f}**\n\n"
@@ -74,24 +74,35 @@ class Challenge(Panel):
 			Self.Embed.title = "Challenge Error"
 			Self.Embed.add_field(name="Error:", value="Must have a minimum wager of $10 to submit a challenge.")
 			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			return False
 			
 		elif len(Self.ChallengerFighters) == 0:
 			Self.Embed.title = "Challenge Error"
 			Self.Embed.add_field(name="Error:", value=f"You have no fighters.")
 			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			return False
 
 		elif len(Self.Opponentfighters) == 0:
 			Self.Embed.title = "Challenge Error"
 			Self.Embed.add_field(name="Error:", value=f"{Self.Opponent.name} has no fighters.")
 			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			return False
 			
 		elif not await Self.Check_Challenges(Self.User):
 			Self.Embed.add_field(name="Challenge Error:", value="You have max challenges already (25).")
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed)
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			return False
 
 		elif not await Self.Check_Challenges(Self.Opponent):
 			Self.Embed.add_field(name="Challenge Error:", value=f"{Self.Opponent.name} has max challenges already (25).")
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed)
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			return False
+		
+		elif await Self.Crucible.Get_Challenge(Self.User, Self.Opponent) or await Self.Crucible.Get_Challenge(Self.Opponent, Self.User):
+			Self.Embed.add_field(name="Challenge Error:", value="You already have a pending challenge with this player.", inline=False)
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			return
+		return True
 
 	
 	async def Check_Challenges(Self, Member:DiscordMember) -> bool:

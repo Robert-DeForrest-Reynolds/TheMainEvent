@@ -44,6 +44,7 @@ class Fighters(Panel):
 			Self.SelectedFighter = Self.SelectedFighter
 			Self.Stats = Self.Fighters[Self.SelectedFighter]
 			Details = f"Level: {Self.Stats["Level"]}\n"
+			Details += f"Experience: {Self.Stats["Experience"]}/{await Self.Crucible.Get_Next_Level_Requirement(Self.Stats['Level'])}\n"
 			Details += f"Health: {Self.Stats["Health"]}\n"
 			Details += f"Power: {Self.Stats["Power"]}\n"
 			Details += f"Defense: {Self.Stats["Defense"]}\n"

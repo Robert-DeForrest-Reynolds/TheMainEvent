@@ -1,4 +1,5 @@
 from os.path import join
+from typing import Any
 
 from discord import Member as DiscordMember
 from discord.abc import GuildChannel
@@ -46,6 +47,16 @@ class Crucible(EB):
 		await Self.change_presence(activity=DiscordGame("Orchestrating combat."), status=f'/{"_" if Self.Testing else ""}fighters')
 
 
+	async def Get_Next_Level_Requirement(Self, Level:int) -> int:
+		return (Level * (19 + (Level * 2))) + Level * 3
+
+
+	async def Check_Level_Up(Self, Level, Experience) -> int:
+		Requirement = Self.Get_Next_Level_Requirement(Level)
+		if Experience > Requirement:
+			...
+
+
 	async def Get_Challenges(Self, Member:DiscordMember):
 		Data = await Self.DB.Request("SELECT * FROM Challenges WHERE ChallengerID=?", (Member.id,))
 		Challenges = {Self.TheGreatHearth.get_member(ChallengeeID).name:
@@ -79,18 +90,46 @@ class Crucible(EB):
 
 
 	async def Get_Fighters(Self, Member:DiscordMember) -> dict:
-		Data = await Self.DB.Request("SELECT ID, Name, Level, Experience, Health, Power, Defense, CreatedAt FROM Fighters WHERE OwnerID=?",
+		Data = await Self.DB.Request("SELECT ID, Name, Level, Experience, SkillPoints, Health, Power, Defense, Wins, Losses, CreatedAt FROM Fighters WHERE OwnerID=?",
 				  			   (Member.id,))
-		Fighters = {Name:{"ID":ID, "Name":Name, "Level":Level, "Experience":Experience, "Health":Health, "Power":Power, "Defense":Defense, "Created At":CreatedAt}
-			  		for ID, Name, Level, Experience, Health, Power, Defense, CreatedAt in Data}
+		Fighters = {Name:{"ID":ID, "Name":Name, "Level":Level, "Experience":Experience, "Skill Points":SkillPoints, "Health":Health, "Power":Power, "Defense":Defense, "Wins":Wins, "Losses":Losses, "Created At":CreatedAt}
+			  		for ID, Name, Level, Experience, SkillPoints, Health, Power, Defense, Wins, Losses, CreatedAt in Data}
 		return Fighters
 
 
 	async def Get_Fighter(Self, FighterName:str) -> list:
-		Result = await Self.DB.Request("SELECT Health, Power, Defense FROM Fighters WHERE Name=?", (FighterName,))
+		Result = await Self.DB.Request("SELECT Health, Power, Defense, Level, Wins, Losses FROM Fighters WHERE Name=?", (FighterName,))
 		Data = Result[0]
-		return {"Name":FighterName, "Health":Data[0],"Power":Data[1],"Defense":Data[2]}
-	
+		return {"Name":FighterName, "Health":Data[0],"Power":Data[1],"Defense":Data[2],"Level":Data[3],"Wins":Data[4],"Losses":Data[5]}
+		
+
+	async def Increment_Fighter_Field(Self, FighterName:str, Field:str):
+		Query = f"UPDATE Fighters SET {Field} = {Field} + 1 WHERE Name=?"
+		await Self.DB.Request(Query, (FighterName,))
+		
+
+	async def Set_Fighter_Field(Self, FighterName:str, Field:str, Value:Any):
+		Query = f"UPDATE Fighters SET {Field} = ? WHERE Name=?"
+		await Self.DB.Request(Query, (Value,FighterName))
+		
+
+	async def Get_Fighter_Field(Self, FighterName:str, Field:str):
+		Query = f"SELECT {Field} FROM Fighters WHERE Name=?"
+		Result = await Self.DB.Request(Query, (FighterName,))
+		return Result[0][0]
+
+
+	async def Give_Fighter_XP(Self, FighterName:str, Amount:int) -> list:
+		await Self.DB.Request("UPDATE Fighters SET Experience = Experience + ? WHERE Name=?", (Amount, FighterName))
+		XP = await Self.Get_Fighter_Field(FighterName, 'Experience')
+		Level = await Self.Get_Fighter_Field(FighterName, 'Level')
+		Requirement = await Self.Get_Next_Level_Requirement(Level)
+		if XP >= Requirement:
+			Self.Send("Fighter Leveled Up")
+			await Self.Set_Fighter_Field(FighterName, 'Experience', XP-Requirement)
+			await Self.Set_Fighter_Field(FighterName, 'Level', Level+1)
+			await Self.Increment_Fighter_Field(FighterName, 'SkillPoints')
+
 
 	async def Delete_Fighter(Self, FighterName:str):
 		await Self.DB.Request("DELETE FROM Fighters WHERE Name=?",
@@ -100,6 +139,14 @@ class Crucible(EB):
 	async def Save_New_Fighter(Self, Member:DiscordMember, FighterName):
 		await Self.DB.Request("INSERT OR IGNORE INTO Fighters (OwnerID, Name, Health, Power, Defense) VALUES (?,?,?,?,?)",
 						(Member.id, FighterName, 50, 50, 50))
+		
+
+	async def Get_Challenge(Self, Challenger:DiscordMember, Challengee:DiscordMember):
+		Result = await Self.DB.Request("SELECT * FROM Challenges WHERE ID=?", (f"{Challenger.id}{Challengee.id}",))
+		if Result:
+			return Result[0]
+		else:
+			return None
 
 
 	async def Save_New_Challenge(Self, Challenger:DiscordMember, Challengee:DiscordMember, Data:list):

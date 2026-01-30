@@ -136,16 +136,21 @@ class Pit:
             LosingMember = Self.CurrentFight['Challenger']
         
         if Winner != None:
+            WinnerXP = int((Winner['Level']*30) * Loser['Level'])
+            LoserXP = int((Loser['Level']*1) * Winner['Level'])
             WinMessage = f"⚔️ {Winner['Name']} has defeated {Loser['Name']} with 💚{Winner['Health']} remaining ⚔️"
             BattleEmbed = Embed(title=WinMessage)
             BattleEmbed.add_field(name="",
                                   value=f"${Self.CurrentFight["Wager"]:,.2f} has been added to your wallet {WinningMember.name},"+
-                                        f" and respectively has been removed from your wallet {LosingMember.name}.\n",
+                                        f" and respectively has been removed from your wallet {LosingMember.name}.\n"+
+                                        f"{Winner['Name']} gained **{WinnerXP} XP**, and {Loser['Name']} gained **{LoserXP} XP**.",
                                         inline=False)
             Details = f"(Coming soon)"
             BattleEmbed.add_field(name="**Fight Details**", value=Details)
-            Self.Crucible.Add_To_Wallet(WinningMember, Self.CurrentFight["Wager"])
-            Self.Crucible.Subject_From_Wallet(LosingMember, Self.CurrentFight["Wager"])
+            await Self.Crucible.Give_Fighter_XP(Winner['Name'], WinnerXP)
+            await Self.Crucible.Give_Fighter_XP(Loser['Name'], LoserXP)
+            await Self.Crucible.Add_To_Wallet(WinningMember, Self.CurrentFight["Wager"])
+            await Self.Crucible.Subject_From_Wallet(LosingMember, Self.CurrentFight["Wager"])
             await Self.Crucible.Delete_Challenge(Self.CurrentFight["ID"])
             Self.CurrentFight = None
             await Message.edit(embed=BattleEmbed)
