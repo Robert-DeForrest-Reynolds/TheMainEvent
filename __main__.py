@@ -16,14 +16,14 @@ from Bots.Crucible.Panels.Fighters import Fighters
 Crucible:C = C()
 
 
-@Crucible.tree.command(name="_challenge" if "Testing" in Crucible.Name else "challenge", description="Challenge another player to a fight")
+@Crucible.tree.command(name="_challenge" if Crucible.Testing else "challenge", description="Challenge another player to a fight")
 async def challenge(Interaction:Interaction, challengee:Member, wager:float):
 	if Crucible.Testing:
 		if not await Crucible.Dev_Channel_Gate(Interaction): return
 	Challenge(Interaction, challengee, wager, Crucible)
 
 
-@Crucible.tree.command(name="_arena" if "Testing" in Crucible.Name else "arena", description="Invoke Crucible's Arena (Admin Only)")
+@Crucible.tree.command(name="_arena" if Crucible.Testing else "arena", description="Invoke Crucible's Arena (Admin Only)")
 async def arena(Interaction:Interaction, action:str):
 	if Crucible.Testing:
 		if not await Crucible.Dev_Channel_Gate(Interaction): return
@@ -34,7 +34,7 @@ async def arena(Interaction:Interaction, action:str):
 		await Interaction.response.send_message("Invalid action", ephemeral=True, delete_after=5)
 
 
-@Crucible.tree.command(name="_fighters" if "Testing" in Crucible.Name else "fighters", description="Manage your Crucible fighters")
+@Crucible.tree.command(name="_fighters" if Crucible.Testing else "fighters", description="Manage your Crucible fighters")
 async def fighters(Interaction:Interaction):
 	if Crucible.Testing:
 		if not await Crucible.Dev_Channel_Gate(Interaction): return
@@ -44,5 +44,5 @@ async def fighters(Interaction:Interaction):
 Crucible.run(Crucible.Token)
 Crucible.Pit.Alive = False
 Crucible.DB.Connection.close()
-Crucible.Send("stopped")
+Crucible.DB.Alive = False
 exit() # Send rational exit code, no matter. We output any errors to Everburn already

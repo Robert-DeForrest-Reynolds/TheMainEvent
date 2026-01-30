@@ -40,13 +40,22 @@ class Crucible(EB):
 
 
 	async def Setup(Self) -> None:
+		Self.Send("Running Post Setup")
 		Self.DB = DB(join("Data", "Crucible.db"), Self) # Attach DB Task to Bot's event loop
-		Self.Channels.update({"Lounge":Self.get_channel(1462614581678706739),
-							  "Pit":Self.get_channel(1462614973741137953),
-							  "Arena":Self.get_channel(1462615216733818943),
-							  "Challenges":Self.get_channel(1464681901775392768)})
-		Self.Roles.update({"Mentions":Self.TheGreatHearth.get_role(1466543997496463523)})
-		Self.Roles.update({"DMs":Self.TheGreatHearth.get_role(1466544162655703255)})
+		if Self.Testing:
+			Self.Channels.update({"Lounge":Self.get_channel(1466898110742794428),
+								  "Pit":Self.get_channel(1466898129604444281),
+								  "Arena":Self.get_channel(1466898146058703013),
+								  "Challenges":Self.get_channel(1466898181840306372)})
+			Self.Roles.update({"Mentions":Self.Server.get_role(1466898260869382236)})
+			Self.Roles.update({"DMs":Self.Server.get_role(1466898227033804811)})
+		else:
+			Self.Channels.update({"Lounge":Self.get_channel(1462614581678706739),
+								  "Pit":Self.get_channel(1462614973741137953),
+								  "Arena":Self.get_channel(1462615216733818943),
+								  "Challenges":Self.get_channel(1464681901775392768)})
+			Self.Roles.update({"Mentions":Self.Server.get_role(1466543997496463523)})
+			Self.Roles.update({"DMs":Self.Server.get_role(1466544162655703255)})
 		Self.Pit = Pit(Self)
 		await Self.change_presence(activity=DiscordGame("Orchestrating combat."), status=f'/{"_" if Self.Testing else ""}fighters')
 
@@ -63,10 +72,10 @@ class Crucible(EB):
 
 	async def Get_Challenges(Self, Member:DiscordMember):
 		Data = await Self.DB.Request("SELECT * FROM Challenges WHERE ChallengerID=?", (Member.id,))
-		Challenges = {Self.TheGreatHearth.get_member(ChallengeeID).name:
+		Challenges = {Self.Server.get_member(ChallengeeID).name:
 								   {"ID":ChallengeID,
-							  		"Challenger":Self.TheGreatHearth.get_member(ChallengerID),
-							  		"Challengee":Self.TheGreatHearth.get_member(ChallengeeID),
+							  		"Challenger":Self.Server.get_member(ChallengerID),
+							  		"Challengee":Self.Server.get_member(ChallengeeID),
 								    "ChallengerID":ChallengerID,
 								    "ChallengeeID":ChallengeeID,
 								    "ChallengerFighter":ChallengerFighter,
@@ -79,10 +88,10 @@ class Crucible(EB):
 
 	async def Get_Opposing_Challenges(Self, Member:DiscordMember):
 		Data = await Self.DB.Request("SELECT * FROM Challenges WHERE ChallengeeID=?", (Member.id,))
-		Challenges = {Self.TheGreatHearth.get_member(ChallengerID).name:
+		Challenges = {Self.Server.get_member(ChallengerID).name:
 								   {"ID":ChallengeID,
-							  		"Challenger":Self.TheGreatHearth.get_member(ChallengerID),
-							  		"Challengee":Self.TheGreatHearth.get_member(ChallengeeID),
+							  		"Challenger":Self.Server.get_member(ChallengerID),
+							  		"Challengee":Self.Server.get_member(ChallengeeID),
 								    "ChallengerID":ChallengerID,
 								    "ChallengeeID":ChallengeeID,
 								    "ChallengerFighter":ChallengerFighter,
