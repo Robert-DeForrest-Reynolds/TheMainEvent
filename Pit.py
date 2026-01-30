@@ -136,7 +136,7 @@ class Pit:
             LosingMember = Self.CurrentFight['Challenger']
         
         if Winner != None:
-            WinnerXP = int((Winner['Level']*30) * Loser['Level'])
+            WinnerXP = int((Winner['Level']*5) * Loser['Level'])
             LoserXP = int((Loser['Level']*1) * Winner['Level'])
             WinMessage = f"⚔️ {Winner['Name']} has defeated {Loser['Name']} with 💚{Winner['Health']} remaining ⚔️"
             BattleEmbed = Embed(title=WinMessage)
