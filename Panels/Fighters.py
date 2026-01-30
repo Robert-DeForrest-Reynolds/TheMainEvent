@@ -29,7 +29,7 @@ class Fighters(Panel):
 
 	async def Send_Panel(Self, Interaction:DiscordInteraction, FollowUp=False):
 		if not await Self.Crucible.Validate_Interaction(Interaction): return
-		await Self.Referesh_Panel()
+		await Self.Refresh_Panel()
 		Self.Embed = Embed(title=f"{Interaction.user}'s Fighter's")
 		Self.Funds = await Self.Crucible.Get_Wallet(Self.User)
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
@@ -56,14 +56,12 @@ class Fighters(Panel):
 
 		if Self.SelectedChallenge:
 			Self.Embed.add_field(name=f"**Challenge Details:**", value="", inline=False)
-			Self.SelectedOpposingChallenge = None
 
 			CancelButton = Button(label="Cancel Challenge", style=ButtonStyle.red, row=4)
 			CancelButton.callback = Self.Cancel_Challenge
 			Self.View.add_item(CancelButton)
 		elif Self.SelectedOpposingChallenge:
 			Self.Embed.add_field(name=f"**Challenge Details:**", value="", inline=False)
-			Self.SelectedChallenge = None
 
 			AcceptButton = Button(label="Accept Challenge", style=ButtonStyle.green, row=4)
 			AcceptButton.callback = Self.Accept_Challenge
@@ -80,6 +78,10 @@ class Fighters(Panel):
 			await Interaction.followup.edit_message(message_id=Interaction.message.id, view=Self.View, embed=Self.Embed)
 		else:
 			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+
+			await Self.Crucible.New_Panel(Interaction.user,
+										  Self.View,
+										  await Interaction.original_response())
 		
 
 	async def Check_Funds(Self, Interaction:DiscordInteraction):
@@ -101,17 +103,20 @@ class Fighters(Panel):
 
 	async def Select_Fighter(Self, Interaction:DiscordInteraction):
 		Self.SelectedFighter = Self.FightersSelect.values[0]
-		await Self.Send_Panel(Interaction)
+		await Interaction.response.defer()
+		await Self.Send_Panel(Interaction, FollowUp=True)
 
 
 	async def Select_Challenge(Self, Interaction:DiscordInteraction):
 		Self.SelectedChallenge = Self.ChallengesSelect.values[0]
-		await Self.Send_Panel(Interaction)
+		await Interaction.response.defer()
+		await Self.Send_Panel(Interaction, FollowUp=True)
 
 
 	async def Select_Opposing_Challenge(Self, Interaction:DiscordInteraction):
 		Self.SelectedOpposingChallenge = Self.OpposingChallengesSelect.values[0]
-		await Self.Send_Panel(Interaction)
+		await Interaction.response.defer()
+		await Self.Send_Panel(Interaction, FollowUp=True)
 
 
 	async def Build_Fighter_Select(Self):
@@ -204,7 +209,7 @@ class Fighters(Panel):
 
 
 	async def Sell_Fighter(Self, Interaction:DiscordInteraction):
-		await Self.Referesh_Panel()
+		await Self.Refresh_Panel()
 
 		await Self.Crucible.Delete_Fighter(Self.SelectedFighter)
 
@@ -228,7 +233,7 @@ class Fighters(Panel):
 
 
 	async def Accept_Challenge(Self, Interaction:DiscordInteraction):
-		await Self.Referesh_Panel()
+		await Self.Refresh_Panel()
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Accepted Challenge", value=f"Fight will start in the <#{Self.Crucible.Channels["Pit"].id}> soon!", inline=False)
 
@@ -245,11 +250,11 @@ class Fighters(Panel):
 
 
 	async def Reject_Challenge(Self, Interaction:DiscordInteraction):
-		await Self.Referesh_Panel()
+		await Self.Refresh_Panel()
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name=f"Rejected Challenge", value="", inline=False)
 
-		await Self.Crucible.Delete_Challenge(Self.SelectedOpposingChallenge["ID"])
+		await Self.Crucible.Delete_Challenge(Self.OpposingChallenges[Self.SelectedOpposingChallenge]["ID"])
 		Self.SelectedOpposingChallenge = None
 
 		await Interaction.response.defer()
@@ -262,10 +267,9 @@ class Fighters(Panel):
 
 
 	async def Cancel_Challenge(Self, Interaction:DiscordInteraction):
-		await Self.Referesh_Panel()
+		await Self.Refresh_Panel()
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
-		Self.Embed.add_field(name=f"Canceled Challenge", value="", inline=False)
-
+		Self.Embed.add_field(name="Canceled Challenge", value="", inline=False)
 		await Self.Crucible.Delete_Challenge(Self.Challenges[Self.SelectedChallenge]["ID"])
 		Self.SelectedChallenge = None
 

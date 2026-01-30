@@ -4,6 +4,7 @@ from typing import Any
 from discord import Member as DiscordMember
 from discord.abc import GuildChannel
 from discord import Game as DiscordGame
+from discord import Role as DiscordRole
 from discord import ForumChannel
 
 from Library.DB import DB
@@ -13,13 +14,14 @@ from Bots.Crucible.Pit import Pit
 
 class Crucible(EB):
 	def __init__(Self):
-		super().__init__(Self.Setup)
 		Self.Forums:dict[str:ForumChannel] = {}
 		Self.Channels:dict[str:GuildChannel] = {}
+		Self.Roles:dict[str:DiscordRole] = {}
 		Self.Weapons = []
 		Self.AttackMoves = []
 		Self.DefensiveMoves = []
 		Self.Pit:Pit = None
+		super().__init__(Self.Setup)
 
 		with open(join("Bots", "Crucible", "Data", "Weapons.txt"), 'r') as File:
 			Lines = File.readlines()
@@ -40,9 +42,11 @@ class Crucible(EB):
 	async def Setup(Self) -> None:
 		Self.DB = DB(join("Data", "Crucible.db"), Self) # Attach DB Task to Bot's event loop
 		Self.Channels.update({"Lounge":Self.get_channel(1462614581678706739),
-							"Pit":Self.get_channel(1462614973741137953),
-							"Arena":Self.get_channel(1462615216733818943),
-							"Challenges":Self.get_channel(1464681901775392768)})
+							  "Pit":Self.get_channel(1462614973741137953),
+							  "Arena":Self.get_channel(1462615216733818943),
+							  "Challenges":Self.get_channel(1464681901775392768)})
+		Self.Roles.update({"Mentions":Self.TheGreatHearth.get_role(1466543997496463523)})
+		Self.Roles.update({"DMs":Self.TheGreatHearth.get_role(1466544162655703255)})
 		Self.Pit = Pit(Self)
 		await Self.change_presence(activity=DiscordGame("Orchestrating combat."), status=f'/{"_" if Self.Testing else ""}fighters')
 
@@ -157,4 +161,4 @@ class Crucible(EB):
 
 	async def Delete_Challenge(Self, ChallengeID:str):
 		await Self.DB.Request("DELETE FROM Challenges WHERE ID=?",
-						(ChallengeID,))
+							  (ChallengeID,))

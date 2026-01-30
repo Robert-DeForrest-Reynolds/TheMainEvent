@@ -8,7 +8,7 @@ from discord import Member as DiscordMember
 from discord import Embed, SelectOption, ButtonStyle, TextChannel
 from discord.ui import Button, Select
 from Library.Panel import Panel
-from asyncio import create_task
+from asyncio import create_task, sleep
 
 
 class Challenge(Panel):
@@ -30,7 +30,7 @@ class Challenge(Panel):
 		if not await Self.Crucible.Validate_Interaction(Interaction): return
 		Self.Embed = Embed(title="Select the fighters")
 		
-		Self.Funds = Self.Crucible.Get_Wallet(Interaction.user)
+		Self.Funds = await Self.Crucible.Get_Wallet(Interaction.user)
 
 		Self.ChallengerFighters = await Self.Crucible.Get_Fighters(Interaction.user)
 		Self.Opponentfighters = await Self.Crucible.Get_Fighters(Self.Opponent)
@@ -68,39 +68,43 @@ class Challenge(Panel):
 		else:
 			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
 
+			await Self.Crucible.New_Panel(Interaction.user,
+										Self.View,
+										await Interaction.original_response())
+
 
 	async def Validate_Challenge(Self, Interaction:DiscordInteraction):
 		if Self.Wager <= 10:
 			Self.Embed.title = "Challenge Error"
 			Self.Embed.add_field(name="Error:", value="Must have a minimum wager of $10 to submit a challenge.")
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True, delete_after=10)
 			return False
 			
 		elif len(Self.ChallengerFighters) == 0:
 			Self.Embed.title = "Challenge Error"
 			Self.Embed.add_field(name="Error:", value=f"You have no fighters.")
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True, delete_after=10)
 			return False
 
 		elif len(Self.Opponentfighters) == 0:
 			Self.Embed.title = "Challenge Error"
 			Self.Embed.add_field(name="Error:", value=f"{Self.Opponent.name} has no fighters.")
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True, delete_after=10)
 			return False
 			
 		elif not await Self.Check_Challenges(Self.User):
 			Self.Embed.add_field(name="Challenge Error:", value="You have max challenges already (25).")
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True, delete_after=10)
 			return False
 
 		elif not await Self.Check_Challenges(Self.Opponent):
 			Self.Embed.add_field(name="Challenge Error:", value=f"{Self.Opponent.name} has max challenges already (25).")
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True, delete_after=10)
 			return False
 		
 		elif await Self.Crucible.Get_Challenge(Self.User, Self.Opponent) or await Self.Crucible.Get_Challenge(Self.Opponent, Self.User):
 			Self.Embed.add_field(name="Challenge Error:", value="You already have a pending challenge with this player.", inline=False)
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True)
+			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True, delete_after=10)
 			return
 		return True
 
@@ -117,18 +121,18 @@ class Challenge(Panel):
 
 	async def Set_Fighter(Self, Interaction:DiscordInteraction):
 		Self.Fighter = Self.ChallengerFightersSelect.values[0]
-		await Self.Referesh_Panel()
+		await Self.Refresh_Panel()
 		await Self.Send_Panel(Interaction, Edit=True)
 		
 
 	async def Set_Opponent_Fighter(Self, Interaction:DiscordInteraction):
 		Self.OpponentFighter = Self.OpponentFightersSelect.values[0]
-		await Self.Referesh_Panel()
+		await Self.Refresh_Panel()
 		await Self.Send_Panel(Interaction, Edit=True)
 
 
 	async def Confirm_Fight(Self, Interaction:DiscordInteraction):
-		await Self.Referesh_Panel()
+		await Self.Refresh_Panel()
 		Self.Embed = Embed(title="Challenge Sent")
 		Data = [Self.Fighter, Self.OpponentFighter, Self.Wager]
 		await Self.Crucible.Save_New_Challenge(Self.User, Self.Opponent, Data)
@@ -137,4 +141,10 @@ class Challenge(Panel):
 		ChallengesChannel:TextChannel = Self.Crucible.Channels["Challenges"]
 		ChallengeEmbed = Embed(title=f"{Self.User.name} has challenged {Self.Opponent.name}")
 		ChallengeEmbed.add_field(name=f"**{Self.Fighter}** vs. **{Self.OpponentFighter}** for ${Self.Wager:,.2f}\n", value="")
-		await ChallengesChannel.send(f"{Self.User.mention} ⚔️ {Self.Opponent.mention}\n",embed=ChallengeEmbed)
+		UserNotifyString = Self.User.mention if Self.User.get_role(Self.Crucible.Roles['Mentions'].id) else Self.User.name
+		OpponentNotifyString = Self.Opponent.mention if Self.Opponent.get_role(Self.Crucible.Roles['Mentions'].id) else Self.Opponent.name
+		if Self.Opponent.get_role(Self.Crucible.Roles['DMs'].id):
+			await Self.Opponent.send(f'{Self.User.name} has challenged you!\n**{Self.Fighter}** vs. **{Self.OpponentFighter}** for ${Self.Wager:,.2f}')
+		await ChallengesChannel.send(f"{UserNotifyString} ⚔️ {OpponentNotifyString}\n",embed=ChallengeEmbed)
+		await sleep(10)
+		await Self.Cleanup_Panel()
