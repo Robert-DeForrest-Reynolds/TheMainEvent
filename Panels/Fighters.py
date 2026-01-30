@@ -180,7 +180,7 @@ class Fighters(Panel):
 	async def Get_Name_Modal(Self, Interaction:DiscordInteraction):
 		NameModal = Modal(title="What is your fighter's name?", timeout=Self.Crucible.EphemeralTimeout)
 
-		Self.FighterNameSubmission = TextInput(label="Name")
+		Self.FighterNameSubmission = TextInput(label="Name", required=True, min_length=1, max_length=32)
 		NameModal.add_item(Self.FighterNameSubmission)
 
 		NameModal.on_submit = Self.Validate_Name
