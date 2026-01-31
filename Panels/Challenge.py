@@ -77,35 +77,35 @@ class Challenge(Panel):
 		if Self.Wager <= 10:
 			Self.Embed.title = "Challenge Error"
 			Self.Embed.add_field(name="Error:", value="Must have a minimum wager of $10 to submit a challenge.")
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True, delete_after=10)
+			await Self.Crucible.Quick_Reply(Interaction, Self.View, Embed=Self.Embed)
 			return False
 			
 		elif len(Self.ChallengerFighters) == 0:
 			Self.Embed.title = "Challenge Error"
 			Self.Embed.add_field(name="Error:", value=f"You have no fighters.")
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True, delete_after=10)
+			await Self.Crucible.Quick_Reply(Interaction, Self.View, Embed=Self.Embed)
 			return False
 
 		elif len(Self.Opponentfighters) == 0:
 			Self.Embed.title = "Challenge Error"
 			Self.Embed.add_field(name="Error:", value=f"{Self.Opponent.name} has no fighters.")
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True, delete_after=10)
+			await Self.Crucible.Quick_Reply(Interaction, Self.View, Embed=Self.Embed)
 			return False
 			
 		elif not await Self.Check_Challenges(Self.User):
 			Self.Embed.add_field(name="Challenge Error:", value="You have max challenges already (25).")
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True, delete_after=10)
+			await Self.Crucible.Quick_Reply(Interaction, Self.View, Embed=Self.Embed)
 			return False
 
 		elif not await Self.Check_Challenges(Self.Opponent):
 			Self.Embed.add_field(name="Challenge Error:", value=f"{Self.Opponent.name} has max challenges already (25).")
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True, delete_after=10)
+			await Self.Crucible.Quick_Reply(Interaction, Self.View, Embed=Self.Embed)
 			return False
 		
 		elif await Self.Crucible.Get_Challenge(Self.User, Self.Opponent) or await Self.Crucible.Get_Challenge(Self.Opponent, Self.User):
 			Self.Embed.add_field(name="Challenge Error:", value="You already have a pending challenge with this player.", inline=False)
-			await Interaction.response.send_message(view=Self.View, embed=Self.Embed, ephemeral=True, delete_after=10)
-			return
+			await Self.Crucible.Quick_Reply(Interaction, Self.View, Embed=Self.Embed)
+			return False
 		return True
 
 	

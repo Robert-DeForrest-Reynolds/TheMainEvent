@@ -188,94 +188,64 @@ class Fighters(Panel):
 		await Interaction.response.send_modal(NameModal)
 
 
+	async def Notify_And_Refresh(Self, Interaction:DiscordInteraction):
+		await Self.Refresh_Panel()
+		await Interaction.response.defer()
+		await Interaction.followup.edit_message(message_id=Interaction.message.id ,view=Self.View, embed=Self.Embed)
+		await sleep(5)
+		await Self.Send_Panel(Interaction, FollowUp=True)
+
+
 	async def Purchase_Fighter(Self, Interaction:DiscordInteraction, Name:str):
+		Self.Crucible.Send(f"{Self.User} purchased fighter: {Name}")
 		await Self.Crucible.Subject_From_Wallet(Self.User, FighterValue)
+		await Self.Crucible.Save_New_Fighter(Self.User, Name)
 		Self.Funds = await Self.Crucible.Get_Wallet(Self.User)
-		
-		Self.Crucible.Send(f"{Self.User} purchased a fighter")
 		
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 		Self.Embed.add_field(name="Purchased Fighter:", value=Name, inline=False)
-		
-		await Self.Crucible.Save_New_Fighter(Self.User, Name)
-		
-		await Interaction.response.defer()
-		await Interaction.followup.edit_message(message_id=Interaction.message.id ,view=Self.View, embed=Self.Embed)
-
-		await sleep(5)
-
-		await Self.Send_Panel(Interaction, FollowUp=True)
+		await Self.Notify_And_Refresh(Interaction)
 
 
 	async def Sell_Fighter(Self, Interaction:DiscordInteraction):
-		await Self.Refresh_Panel()
-
-		await Self.Crucible.Delete_Fighter(Self.SelectedFighter)
-
-		await Self.Crucible.Add_To_Wallet(Self.User, FighterValue)
-
 		Self.Crucible.Send(f"{Self.User} sold {Self.SelectedFighter}")
-		
+		await Self.Crucible.Delete_Fighter(Self.SelectedFighter)
+		await Self.Crucible.Add_To_Wallet(Self.User, FighterValue)
 		Self.Funds = await Self.Crucible.Get_Wallet(Self.User)
+
 		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
 		Self.Embed.add_field(name="Wallet", value=f"${Self.Funds:,.2f}", inline=False)
 		Self.Embed.add_field(name=f"Sold {Self.SelectedFighter} for {FighterValue}", value="", inline=False)
-
-		Self.SelectedFighter = None
-		await Self.Build_Fighter_Select()
-		await Interaction.response.defer()
-		await Interaction.followup.edit_message(message_id=Interaction.message.id ,view=Self.View, embed=Self.Embed)
-
-		await sleep(5)
-
-		await Self.Send_Panel(Interaction, FollowUp=True)
+		await Self.Notify_And_Refresh(Interaction)
 
 
 	async def Accept_Challenge(Self, Interaction:DiscordInteraction):
-		await Self.Refresh_Panel()
-		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
-		Self.Embed.add_field(name=f"Accepted Challenge", value=f"Fight will start in the <#{Self.Crucible.Channels["Pit"].id}> soon!", inline=False)
-
+		Self.Crucible.Send(f"{Self.User} accepted {Self.SelectedOpposingChallenge}")
 		Challenge = Self.OpposingChallenges.pop(Self.SelectedOpposingChallenge)
 		Self.Crucible.Pit.Fights.append(Challenge)
 		Self.SelectedOpposingChallenge = None
 
-		await Interaction.response.defer()
-		await Interaction.followup.edit_message(message_id=Interaction.message.id ,view=Self.View, embed=Self.Embed)
-
-		await sleep(5)
-
-		await Self.Send_Panel(Interaction, FollowUp=True)
+		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
+		Self.Embed.add_field(name=f"Accepted Challenge", value=f"Fight will start in the <#{Self.Crucible.Channels["Pit"].id}> soon!", inline=False)
+		await Self.Notify_And_Refresh(Interaction)
 
 
 	async def Reject_Challenge(Self, Interaction:DiscordInteraction):
-		await Self.Refresh_Panel()
-		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
-		Self.Embed.add_field(name=f"Rejected Challenge", value="", inline=False)
-
+		Self.Crucible.Send(f"{Self.User} rejected {Self.SelectedOpposingChallenge}")
 		await Self.Crucible.Delete_Challenge(Self.OpposingChallenges[Self.SelectedOpposingChallenge]["ID"])
 		Self.SelectedOpposingChallenge = None
 
-		await Interaction.response.defer()
-		await Interaction.followup.edit_message(message_id=Interaction.message.id ,view=Self.View, embed=Self.Embed)
-
-		await sleep(5)
-
-		await Self.Send_Panel(Interaction, FollowUp=True)
-
+		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
+		Self.Embed.add_field(name=f"Rejected Challenge", value="", inline=False)
+		await Self.Notify_And_Refresh(Interaction)
 
 
 	async def Cancel_Challenge(Self, Interaction:DiscordInteraction):
-		await Self.Refresh_Panel()
-		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
-		Self.Embed.add_field(name="Canceled Challenge", value="", inline=False)
+		Self.Crucible.Send(f"{Self.User} cancelled {Self.SelectedChallenge}")
 		await Self.Crucible.Delete_Challenge(Self.Challenges[Self.SelectedChallenge]["ID"])
 		Self.SelectedChallenge = None
 
-		await Interaction.response.defer()
-		await Interaction.followup.edit_message(message_id=Interaction.message.id ,view=Self.View, embed=Self.Embed)
-
-		await sleep(5)
-
-		await Self.Send_Panel(Interaction, FollowUp=True)
+		Self.Embed = Embed(title=f"{Self.User.name}'s Fighter's")
+		Self.Embed.add_field(name="Canceled Challenge", value="", inline=False)
+		await Self.Notify_And_Refresh(Interaction)
